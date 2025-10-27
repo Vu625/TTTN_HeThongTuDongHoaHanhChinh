@@ -1,0 +1,18 @@
+[
+  {
+    "form_template_id": "T001",
+    "name_vn": "Thủ tục Cấp lại Thẻ Căn cước Công dân",
+    "description": "Thủ tục hành chính cơ bản về cấp lại CCCD do mất hoặc hỏng.",
+    "required_documents": ["CCCD (bản cũ/mất)", "Đơn xin cấp lại"],
+    "required_fields": ["So_CCCD", "Ho_va_ten", "Ngay_sinh", "Que_quan"],
+    "linked_workflow_id": "W101"
+  },
+  {
+    "form_template_id": "T002",
+    "name_vn": "Thủ tục Xác nhận Tình trạng Hôn nhân",
+    "description": "Xác nhận tình trạng độc thân để phục vụ các giao dịch dân sự.",
+    "required_documents": ["Đơn đề nghị", "Hộ khẩu"],
+    "required_fields": ["Ho_va_ten", "Ngay_sinh", "Trang_thai_hon_nhan"],
+    "linked_workflow_id": "W102"
+  }
+]

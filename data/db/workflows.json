@@ -1,0 +1,29 @@
+[
+  {
+    "workflow_id": "W101",
+    "workflow_name": "Quy trình Xử lý Cấp lại CCCD",
+    "form_template_id": "T001",
+    "steps": [
+      {
+        "step_id": "step_1",
+        "step_name": "Trích xuất & Kiểm tra Hợp lệ (AI)",
+        "action": "RUN_OCR_AND_LLM_VALIDATION",
+        "rules": {
+          "on_fail": "step_3"
+        }
+      },
+      {
+        "step_id": "step_2",
+        "step_name": "Gán Cán bộ Xử lý",
+        "action": "ASSIGN_OFFICER_BY_LOAD",
+        "next_step": "FINISH"
+      },
+      {
+        "step_id": "step_3",
+        "step_name": "Yêu cầu Bổ sung Hồ sơ",
+        "action": "NOTIFY_CITIZEN_SUPPLEMENT",
+        "next_step": "WAIT_FOR_RESUBMISSION"
+      }
+    ]
+  }
+]

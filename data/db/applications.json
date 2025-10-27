@@ -1,0 +1,19 @@
+[
+  {
+    "application_id": "APP20250001",
+    "form_template_id": "T001",
+    "citizen_id": "C001",
+    "data_extracted": {
+      "Ho_va_ten": "Nguyễn Văn A",
+      "Ngay_sinh": "15/05/1990",
+      "So_CCCD": "001190005123",
+      "Que_quan": "Hà Nội"
+    },
+    "current_status": "processing",
+    "current_workflow_step": "step_2",
+    "assigned_officer_id": "O005",
+    "submission_date": "2025-10-22T10:00:00Z",
+    "last_update": "2025-10-22T10:15:00Z",
+    "file_paths": ["data/uploads/C001/doc_cccd.pdf"]
+  }
+]
