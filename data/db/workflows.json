@@ -1,29 +1,35 @@
 [
   {
     "workflow_id": "W101",
-    "workflow_name": "Quy trình Xử lý Cấp lại CCCD",
-    "form_template_id": "T001",
+    "workflow_name": "Quy trình Xác thực Chuyên sâu (CCCD)",
     "steps": [
-      {
-        "step_id": "step_1",
-        "step_name": "Trích xuất & Kiểm tra Hợp lệ (AI)",
-        "action": "RUN_OCR_AND_LLM_VALIDATION",
-        "rules": {
-          "on_fail": "step_3"
-        }
-      },
-      {
-        "step_id": "step_2",
-        "step_name": "Gán Cán bộ Xử lý",
-        "action": "ASSIGN_OFFICER_BY_LOAD",
-        "next_step": "FINISH"
-      },
-      {
-        "step_id": "step_3",
-        "step_name": "Yêu cầu Bổ sung Hồ sơ",
+      {"step_id": "S1",
+        "action": "RUN_OCR",
+        "description": "Trích xuất văn bản từ giấy tờ."},
+      {"step_id": "S2",
+        "action": "VALIDATE_LLM",
+        "description": "Kiểm tra tính hợp lệ bằng AI.",
+        "rules": {"on_fail": "S4"}},
+      {"step_id": "S3",
+        "action": "ASSIGN_OFFICER",
+        "description": "Gán cho cán bộ chuyên môn để xác minh.",
+        "next_step": "FINISH"},
+      {"step_id": "S4",
         "action": "NOTIFY_CITIZEN_SUPPLEMENT",
-        "next_step": "WAIT_FOR_RESUBMISSION"
-      }
+        "description": "Thông báo yêu cầu bổ sung hồ sơ."}
+    ]
+  },
+  {
+    "workflow_id": "W102",
+    "workflow_name": "Quy trình Kiểm tra/Duyệt Cơ bản",
+    "steps": [
+      {"step_id": "S10",
+        "action": "RUN_OCR",
+        "description": "Trích xuất văn bản từ giấy tờ."},
+      {"step_id": "S11",
+        "action": "ASSIGN_OFFICER",
+        "description": "Gán cho cán bộ hành chính.",
+        "next_step": "FINISH"}
     ]
   }
 ]
