@@ -3,21 +3,36 @@
     "form_template_id": "T001",
     "name_vn": "Thủ tục Cấp lại Thẻ Căn cước Công dân",
     "description": "Thủ tục hành chính cơ bản về cấp lại CCCD do mất hoặc hỏng.",
-    "required_fields": ["So_CCCD", "Ho_va_ten", "Ngay_sinh", "Que_quan","Anh_chan_dung"],
+    "required_doc": ["Ảnh thẻ CCCD","Giấy xác nhận"],
+    "required_fields": [
+            {"name": "So_CCCD", "label": "Số CCCD", "type": "text"},
+            {"name": "Ho_va_ten", "label": "Họ và tên", "type": "text"},
+            {"name": "Que_quan", "label": "Quê quán", "type": "text"}
+      ],
     "linked_workflow_id": "W101"
   },
   {
     "form_template_id": "T002",
     "name_vn": "Thủ tục Xác nhận Tình trạng Hôn nhân",
     "description": "Xác nhận tình trạng độc thân để phục vụ các giao dịch dân sự.",
-    "required_fields": ["Ho_va_ten", "Ngay_sinh", "Trang_thai_hon_nhan"],
+    "required_doc": ["Ảnh thẻ CCCD","Giấy xác nhận hôn nhân"],
+    "required_fields": [
+            {"name": "Ho_va_ten", "label": "Họ và tên", "type": "text"},
+            {"name": "Ngay_sinh", "label": "Ngày Sinh", "type": "text"},
+            {"name": "Tinh_Trang_Hon_Nhan", "label": "Tình Trạng Hôn Nhân", "type": "text"}
+      ],
     "linked_workflow_id": "W102"
   },
     {
     "form_template_id": "T002",
     "name_vn": "Thủ tục Xác nhận Tạm Trú",
     "description": "Xác nhận Tạm Trú để phục vụ các giao dịch dân sự.",
-    "required_fields": ["Ho_va_ten", "Dia_chi_tam_tru", "Thoi_gian_tam_tru"],
+      "required_doc": ["Ảnh thẻ CCCD","Giấy xác nhận tạm trú"],
+    "required_fields": [
+            {"name": "Ho_va_ten", "label": "Họ và tên", "type": "text"},
+            {"name": "dia_chi_tam_tru", "label": "Địa chỉ tạm trú", "type": "text"},
+            {"name": "thoi_gian_tam_tru", "label": "Thời Gian tạm trú", "type": "text"}
+      ],
     "linked_workflow_id": "W102"
   }
 ]

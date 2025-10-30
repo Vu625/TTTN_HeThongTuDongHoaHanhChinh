@@ -1,16 +1,16 @@
 [
   {
     "user_id": "C001",
-    "username": "nguyenvana",
-    "password": "hashed_password_citizen_1",
+    "username": "citizen",
+    "password": "123456",
     "role": "citizen",
     "full_name": "Nguyễn Văn A",
     "email": "vana@example.com"
   },
   {
     "user_id": "O005",
-    "username": "canbob",
-    "password": "hashed_password_officer_5",
+    "username": "officer",
+    "password": "123456",
     "role": "officer",
     "full_name": "Trần Thị B",
     "email": "canbo.b@phuong.gov"
@@ -18,7 +18,7 @@
   {
     "user_id": "A001",
     "username": "admin",
-    "password": "hashed_password_admin_1",
+    "password": "123456",
     "role": "admin",
     "full_name": "Quản trị Hệ thống",
     "email": "admin@phuong.gov"

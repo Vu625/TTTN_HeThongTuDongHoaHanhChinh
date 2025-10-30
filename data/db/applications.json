@@ -1,19 +1,37 @@
 [
   {
     "application_id": "APP20250001",
+    "citizen_id": "C003",
     "form_template_id": "T001",
-    "citizen_id": "C001",
-    "data_extracted": {
+    "form_data": {
       "Ho_va_ten": "Nguyễn Văn A",
       "Ngay_sinh": "15/05/1990",
       "So_CCCD": "001190005123",
       "Que_quan": "Hà Nội"
     },
-    "current_status": "processing",
+    "status": "processing",
     "current_workflow_step": "step_2",
     "assigned_officer_id": "O005",
-    "submission_date": "2025-10-22T10:00:00Z",
+    "submitted_at": "2025-10-22T10:00:00Z",
     "last_update": "2025-10-22T10:15:00Z",
-    "file_paths": ["data/uploads/C001/doc_cccd.pdf"]
+    "file_paths": [
+      "data/uploads/C001/doc_cccd.pdf"
+    ]
+  },
+  {
+    "application_id": "68784486-938d-486b-b027-b307be259694",
+    "citizen_id": "C001",
+    "form_template_id": "T001",
+    "status": "submitted",
+    "submitted_at": "2025-10-30T09:28:42.088766",
+    "documents": [
+      "GPLX_mattruoc.jpg",
+      "CCCD_mattruoc.jpg"
+    ],
+    "form_data": {
+      "So_CCCD": "2200011585832424",
+      "Ho_va_ten": "Vũ Nguyễn Đỗ Anh",
+      "Que_quan": "Tây Ninh"
+    }
   }
 ]

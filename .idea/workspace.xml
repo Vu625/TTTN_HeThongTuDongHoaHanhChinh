@@ -5,21 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="afd723f4-853f-435c-90fe-b5a04501d33f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pages/Admin_Home.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pages/Citizen_Home.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pages/Officer_Home.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/services/llm_inference.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/db/applications.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/db/applications.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/db/form_templates.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/db/form_templates.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/db/user.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/db/users.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/db/workflows.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/db/workflows.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/ai_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/ai_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/auth_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/auth_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/data_viz_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/data_viz_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/ocr_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/ocr_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/rag_engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/rag_engine.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/workflow_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/workflow_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/db/users.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/db/users.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/Citizen_Home.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/Citizen_Home.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/Officer_Home.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/Officer_Home.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
