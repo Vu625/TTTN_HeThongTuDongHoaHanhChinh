@@ -1,5 +1,6 @@
 import streamlit as st
 from services.auth_service import check_role, logout
+from services.ocr_service import save_uploaded_file
 from services.data_viz_service import load_forms, load_applications, save_applications
 from datetime import datetime
 import uuid
@@ -36,13 +37,14 @@ if menu == "Nộp hồ sơ":
 
         if st.button("Gửi hồ sơ"):
             apps = load_applications()
+            saved_files = [save_uploaded_file(f) for f in uploaded_files]
             new_app = {
                 "application_id": str(uuid.uuid4()),
                 "citizen_id": st.session_state["user_id"],
                 "form_template_id": form["form_template_id"],
                 "status": "submitted",
                 "submitted_at": datetime.now().isoformat(),
-                "documents": [f.name for f in uploaded_files],
+                "documents": saved_files,
                 "form_data": form_data
             }
             apps.append(new_app)

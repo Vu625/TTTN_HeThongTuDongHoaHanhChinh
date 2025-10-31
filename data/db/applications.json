@@ -19,19 +19,34 @@
     ]
   },
   {
-    "application_id": "68784486-938d-486b-b027-b307be259694",
+    "application_id": "192b9d91-ebba-4bee-8825-22446c4f90c3",
     "citizen_id": "C001",
     "form_template_id": "T001",
     "status": "submitted",
-    "submitted_at": "2025-10-30T09:28:42.088766",
+    "submitted_at": "2025-10-30T12:10:05.610556",
     "documents": [
-      "GPLX_mattruoc.jpg",
-      "CCCD_mattruoc.jpg"
+      "data\\db\\uploads\\CCCD_mattruoc.jpg",
+      "data\\db\\uploads\\GPLX_mattruoc.jpg"
     ],
     "form_data": {
       "So_CCCD": "2200011585832424",
       "Ho_va_ten": "Vũ Nguyễn Đỗ Anh",
-      "Que_quan": "Tây Ninh"
+      "Que_quan": ""
+    }
+  },
+  {
+    "application_id": "ba867ef8-abf5-4e7c-9af0-4cadb44005be",
+    "citizen_id": "C001",
+    "form_template_id": "T001",
+    "status": "approved",
+    "submitted_at": "2025-10-30T13:56:04.155990",
+    "documents": [
+      "data\\db\\uploads\\GPLX_mattruoc.jpg"
+    ],
+    "form_data": {
+      "So_CCCD": "1234445566788",
+      "Ho_va_ten": "Vũ Nguyễn Đỗ Anh",
+      "Que_quan": "Bắc Ninh"
     }
   }
 ]
