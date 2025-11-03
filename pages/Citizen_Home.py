@@ -1,6 +1,7 @@
 import streamlit as st
 from services.auth_service import check_role, logout
 from services.ocr_service import save_uploaded_file
+from services.rag_engine import generate_answer
 from services.data_viz_service import load_forms, load_applications, save_applications
 from datetime import datetime
 import uuid
@@ -8,10 +9,20 @@ import uuid
 check_role("citizen")
 st.title("🏠 Trang chủ Công dân")
 
-menu = st.sidebar.radio("Chức năng", ["Nộp hồ sơ", "Hồ sơ đã gửi"])
+menu = st.sidebar.radio("Chức năng", ["Nộp hồ sơ", "Hồ sơ đã gửi", "💬 Chatbot Hành chính AI"])
 
-if st.sidebar.button("Đăng xuất"):
-    logout()
+# === ChatBot ===
+if menu == "💬 Chatbot Hành chính AI":
+    st.subheader("💬 Hỏi đáp thủ tục hành chính thông minh")
+    st.write("Bạn có thể hỏi như:")
+    st.info("• Tôi muốn cấp lại CCCD thì cần gì?\n• Đăng ký khai sinh trong bao lâu?\n• Hồ sơ chứng thực gồm gì?")
+
+    user_input = st.text_input("Nhập câu hỏi của bạn:")
+    if st.button("Gửi câu hỏi") and user_input.strip():
+        with st.spinner("Đang tra cứu văn bản pháp luật..."):
+            answer = generate_answer(user_input)
+        st.success("Kết quả:")
+        st.markdown(answer)
 
 # === Nộp hồ sơ ===
 if menu == "Nộp hồ sơ":
@@ -68,3 +79,6 @@ if menu == "Hồ sơ đã gửi":
                 **Ngày gửi**: {a['submitted_at']}
                 ---
             """)
+
+if st.sidebar.button("Đăng xuất"):
+    logout()

@@ -5,13 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="afd723f4-853f-435c-90fe-b5a04501d33f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/models/ocr/tessdata/config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/models/ocr/tessdata/vie.traineddata" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/db/law_texts/nghi_dinh_khaisinh.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/db/law_texts/thong_tu_cccd.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/db/law_texts/uy_dinh_chungthuc.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/db/applications.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/db/applications.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/Admin_Home.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/Admin_Home.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/Citizen_Home.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/Citizen_Home.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/Officer_Home.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/Officer_Home.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/ocr_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/ocr_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/ai_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/ai_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/data_viz_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/data_viz_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/rag_engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/rag_engine.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,14 +39,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/nguye/PycharmProjects/TTTN/models/ocr/tessdata&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.main.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "C:/Users/nguye/PycharmProjects/TTTN"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\nguye\PycharmProjects\TTTN\models\ocr\tessdata" />
