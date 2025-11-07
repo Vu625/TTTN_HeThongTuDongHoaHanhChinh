@@ -22,10 +22,10 @@ def load_users():
         return []
 
 # Xác thực tài khoản
-def authenticate_user(username, password):
+def authenticate_user(user_id, password):
     users = load_users()
     for user in users:
-        if user["username"] == username and user["password"] == password:
+        if user["user_id"] == user_id and user["password"] == password:
             return user
     return None
 

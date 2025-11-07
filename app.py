@@ -1,47 +1,108 @@
 import streamlit as st
-#from utils.auth import authenticate_user, login_success, logout
-from services.auth_service import authenticate_user,login_success,logout
-# Cấu hình giao diện cơ bản
-st.set_page_config(page_title="Hệ thống Hành chính AI", page_icon="🤖")
+
+# ------------------ CẤU HÌNH TRANG ------------------
+st.set_page_config(
+    page_title="Hệ thống định danh và xác thực điện tử - Mô phỏng VNeID",
+    page_icon="🌐",
+    layout="wide"
+)
+
+# ------------------ HEADER ------------------
+st.markdown(
+    """
+    <style>
+        .header {
+            background-color: #0055A5;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+        }
+        .menu {
+            background-color: #E6F2FF;
+            padding: 10px;
+            text-align: center;
+        }
+        .menu a {
+            text-decoration: none;
+            color: #0055A5;
+            margin: 0 15px;
+            font-weight: 600;
+        }
+        .menu a:hover {
+            color: #FFB400;
+        }
+    </style>
+    <div class="header">
+        🌐 HỆ THỐNG ĐỊNH DANH VÀ XÁC THỰC ĐIỆN TỬ QUỐC GIA (VNeID)
+    </div>
+    <div class="menu">
+        <a href="/">Trang chủ</a>
+        <a href="/Giới_thiệu">Giới thiệu</a>
+        <a href="/Tin_tức">Tin tức</a>
+        <a href="/Hướng_dẫn">Hướng dẫn</a>
+        <a href="/Văn_bản_pháp_lý">Văn bản pháp lý</a>
+        <a href="/Hỏi_đáp">Hỏi đáp</a>
+        <a href="/Login_page" style="float:right; color:red;">Đăng nhập</a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 
-def show_login_page():
-    st.title("🔐 Đăng nhập hệ thống")
+# ------------------ HERO SECTION ------------------
+st.image(
+    "https://vneid.gov.vn/images/banner-home.jpg",
+    use_container_width=True,
+)
+st.markdown("""
+### 🔒 ĐỊNH DANH ĐIỆN TỬ QUỐC GIA – KẾT NỐI AN TOÀN, THUẬN TIỆN
+Ứng dụng giúp người dân thực hiện các dịch vụ công, xác thực danh tính, và tích hợp giấy tờ cá nhân trên nền tảng số.
+""")
 
-    username = st.text_input("Tên đăng nhập")
-    password = st.text_input("Mật khẩu", type="password")
+st.link_button("📲 Tải ứng dụng VNeID", "https://vneid.gov.vn/")
 
-    if st.button("Đăng nhập"):
-        user = authenticate_user(username, password)
-        if user:
-            login_success(user)
-            st.success("Đăng nhập thành công!")
-            st.rerun()
-        else:
-            st.error("Sai tài khoản hoặc mật khẩu!")
+# ------------------ GIỚI THIỆU ------------------
+with st.container():
+    st.divider()
+    st.subheader("📘 Giới thiệu hệ thống")
+    st.write("""
+    VNeID là hệ thống định danh và xác thực điện tử do **Bộ Công an** triển khai, 
+    nhằm mục tiêu xây dựng nền tảng **chính phủ số và công dân số** tại Việt Nam.
 
+    **Tiện ích chính:**
+    - Xác thực danh tính công dân nhanh chóng, an toàn.
+    - Tích hợp giấy tờ cá nhân (CMND, GPLX, BHYT, CCCD gắn chip,...).
+    - Hỗ trợ thực hiện dịch vụ công trực tuyến toàn quốc.
+    """)
 
-def show_logged_in():
-    st.sidebar.write(f"👤 Xin chào: **{st.session_state['full_name']}**")
-    if st.sidebar.button("Đăng xuất"):
-        logout()
+# ------------------ TÍNH NĂNG ------------------
+with st.container():
+    st.divider()
+    st.subheader("⚙️ Tiện ích nổi bật")
+    cols = st.columns(5)
+    features = [
+        ("🪪", "Xác thực danh tính"),
+        ("🏠", "Khai báo cư trú"),
+        ("📄", "Tích hợp giấy tờ"),
+        ("💼", "Dịch vụ công"),
+        ("💰", "Thanh toán điện tử")
+    ]
+    for col, (icon, name) in zip(cols, features):
+        with col:
+            st.markdown(f"<h1 style='text-align:center'>{icon}</h1>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align:center'><b>{name}</b></p>", unsafe_allow_html=True)
 
-    role = st.session_state.get("role")
-
-    if role == "citizen":
-        st.switch_page("pages/Citizen_Home.py")
-    elif role == "officer":
-        st.switch_page("pages/Officer_Home.py")
-    elif role == "admin":
-        st.switch_page("pages/Admin_Home.py")
-    else:
-        st.error("Không xác định vai trò người dùng!")
-
-
-# Luồng chính
-if "is_logged_in" not in st.session_state:
-    show_login_page()
-else:
-    show_logged_in()
-
-
+# ------------------ FOOTER ------------------
+st.divider()
+st.markdown(
+    """
+    <div style="text-align:center; color:gray; font-size:14px;">
+        <p>Cục C06 - Bộ Công an Việt Nam</p>
+        <p>Địa chỉ: 47 Phạm Văn Đồng, Hà Nội | Điện thoại: 069.234.2590 | Email: hotro@vneid.gov.vn</p>
+        <p>© 2025 Bản quyền thuộc Bộ Công an Việt Nam</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)

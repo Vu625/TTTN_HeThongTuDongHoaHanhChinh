@@ -5,16 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="afd723f4-853f-435c-90fe-b5a04501d33f" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/pages/Login_page.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/TTTN.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/TTTN.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/db/applications.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/db/applications.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/db/form_templates.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/db/form_templates.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/db/law_texts/thong_tu_cccd.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/db/law_texts/thong_tu_cccd.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/db/workflows.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/db/workflows.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/AI_Assistant.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/AI_Assistant.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pages/Citizen_Home.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/Citizen_Home.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/Officer_Home.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/Officer_Home.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/data_viz_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/data_viz_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/ocr_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/ocr_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/workflow_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/workflow_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pages/Submit_Application.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/Submit_Application.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/auth_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/auth_service.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,7 +34,9 @@
   &quot;associatedIndex&quot;: 2
 }</component>
   <component name="ProjectId" id="34PI0TaphQY0gIk7LPPrYYRNFPT" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -44,8 +45,17 @@
   &quot;keyToString&quot;: {
     &quot;Python.main.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/nguye/PycharmProjects/TTTN&quot;
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Admin/TTTN_HeThongTuDongHoaHanhChinh&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
   <component name="RecentsManager">
@@ -53,6 +63,8 @@
       <recent name="C:\Users\nguye\PycharmProjects\TTTN\models\ocr\tessdata" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Admin\TTTN_HeThongTuDongHoaHanhChinh\services" />
+      <recent name="C:\Users\Admin\TTTN_HeThongTuDongHoaHanhChinh\pages" />
       <recent name="C:\Users\nguye\PycharmProjects\TTTN\data\db" />
     </key>
   </component>
@@ -70,6 +82,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="C:\Users\nguye\PycharmProjects\TTTN\app.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -83,7 +96,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-ce3d9afa04ac-ba05f1cad1b1-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.20224.347" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-PY-252.26830.99" />
+        <option value="bundled-python-sdk-164cda30dcd9-0af03a5fa574-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26830.99" />
       </set>
     </attachedChunks>
   </component>
@@ -95,7 +109,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1761108557051</updated>
+      <workItem from="1762494137421" duration="1480000" />
+      <workItem from="1762496809189" duration="10053000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
 </project>
