@@ -16,13 +16,15 @@
     "last_update": "2025-10-22T10:15:00Z",
     "file_paths": [
       "data/uploads/C001/doc_cccd.pdf"
-    ]
+    ],
+    "current_step": 2
   },
   {
     "application_id": "192b9d91-ebba-4bee-8825-22446c4f90c3",
     "citizen_id": "C001",
     "form_template_id": "T001",
-    "status": "submitted",
+    "current_step": 2,
+    "status": "approved",
     "submitted_at": "2025-10-30T12:10:05.610556",
     "documents": [
       "data\\db\\uploads\\CCCD_mattruoc.jpg",
@@ -32,12 +34,14 @@
       "So_CCCD": "2200011585832424",
       "Ho_va_ten": "Vũ Nguyễn Đỗ Anh",
       "Que_quan": ""
-    }
+    },
+    "ocr_texts": {}
   },
   {
     "application_id": "ba867ef8-abf5-4e7c-9af0-4cadb44005be",
     "citizen_id": "C001",
     "form_template_id": "T001",
+    "current_step": 1,
     "status": "approved",
     "submitted_at": "2025-10-30T13:56:04.155990",
     "documents": [
@@ -48,5 +52,36 @@
       "Ho_va_ten": "Vũ Nguyễn Đỗ Anh",
       "Que_quan": "Bắc Ninh"
     }
+  },
+  {
+    "application_id": "6017e765-cf33-4476-8a89-c621b618f1b0",
+    "citizen_id": "C001",
+    "form_template_id": "T001",
+    "status": "submitted",
+    "submitted_at": "2025-11-05T10:20:38.327161",
+    "documents": [
+      "data\\db\\uploads\\chungchi.jpg"
+    ],
+    "form_data": {
+      "So_CCCD": "142343353534533453",
+      "Ho_va_ten": "trường phạm",
+      "Que_quan": "bình phước"
+    }
+  },
+  {
+    "application_id": "ec366818-f16d-4fa0-8e80-2a1e447931e7",
+    "citizen_id": "C001",
+    "form_template_id": "T001",
+    "status": "submitted",
+    "submitted_at": "2025-11-05T14:30:17.048323",
+    "documents": [
+      "data\\db\\uploads\\Cancuoc_vu.png"
+    ],
+    "form_data": {
+      "So_CCCD": "142343353534533453",
+      "Ho_va_ten": "",
+      "Que_quan": ""
+    },
+    "current_step": 2
   }
 ]

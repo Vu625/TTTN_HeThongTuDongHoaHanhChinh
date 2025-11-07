@@ -2,7 +2,7 @@ import streamlit as st
 from services.auth_service import check_role, logout
 from services.ocr_service import save_uploaded_file
 from services.rag_engine import generate_answer
-from services.data_viz_service import load_forms, load_applications, save_applications
+from services.data_viz_service import load_forms, load_applications, save_applications, get_workflow_for_procedure, get_name_form
 from datetime import datetime
 import uuid
 
@@ -72,13 +72,18 @@ if menu == "Hồ sơ đã gửi":
         st.info("Bạn chưa gửi hồ sơ nào")
     else:
         for a in user_apps:
+            steps = get_workflow_for_procedure(a["form_template_id"])
+            current_step = a.get("current_step", 1)
             st.write(f"""
-                **Mã hồ sơ**: {a['application_id']}  
-                **Loại thủ tục**: {a['form_template_id']}  
-                **Tình trạng**: {a['status']}
-                **Ngày gửi**: {a['submitted_at']}
-                ---
+                **Mã hồ sơ:** {a['application_id']}
+                **Thủ tục:** {get_name_form(a['form_template_id'])}  
+                **Bước hiện tại:** {steps[current_step-1]['title'] if steps else 'Không xác định'}  
+                **Trạng thái:** {a['status']}  
+                **Ngày gửi:** {a['submitted_at']}
             """)
+            # hiển thị tiến độ
+            st.progress(current_step / len(steps) if steps else 0)
+            st.divider()
 
 if st.sidebar.button("Đăng xuất"):
     logout()

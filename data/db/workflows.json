@@ -5,18 +5,18 @@
     "steps": [
       {"step_id": "S1",
         "action": "RUN_OCR",
-        "description": "Trích xuất văn bản từ giấy tờ."},
+        "title": "Trích xuất văn bản từ giấy tờ."},
       {"step_id": "S2",
         "action": "VALIDATE_LLM",
-        "description": "Kiểm tra tính hợp lệ bằng AI.",
+        "title": "Kiểm tra tính hợp lệ bằng AI.",
         "rules": {"on_fail": "S4"}},
       {"step_id": "S3",
         "action": "ASSIGN_OFFICER",
-        "description": "Gán cho cán bộ chuyên môn để xác minh.",
+        "title": "Gán cho cán bộ chuyên môn để xác minh.",
         "next_step": "FINISH"},
       {"step_id": "S4",
-        "action": "NOTIFY_CITIZEN_SUPPLEMENT",
-        "description": "Thông báo yêu cầu bổ sung hồ sơ."}
+      "action": "NOTIFY_CITIZEN_SUPPLEMENT",
+        "title": "Thông báo yêu cầu bổ sung hồ sơ."}
     ]
   },
   {
@@ -24,11 +24,15 @@
     "workflow_name": "Quy trình Kiểm tra/Duyệt Cơ bản",
     "steps": [
       {"step_id": "S10",
-        "action": "RUN_OCR",
-        "description": "Trích xuất văn bản từ giấy tờ."},
+        "action": "receive_application",
+        "title": "Tiếp nhận hồ sơ"},
       {"step_id": "S11",
-        "action": "ASSIGN_OFFICER",
-        "description": "Gán cho cán bộ hành chính.",
+        "action": "extract_text",
+        "title": "Xác minh thông tin & OCR",
+        "next_step": "FINISH"},
+      {"step_id": "S11",
+        "action": "approve_result",
+        "title": "Phê duyệt kết quả",
         "next_step": "FINISH"}
     ]
   }
