@@ -4,17 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="afd723f4-853f-435c-90fe-b5a04501d33f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pages/Login_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/TTTN.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/TTTN.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/AI_Assistant.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/AI_Assistant.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/Citizen_Home.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/Citizen_Home.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/Submit_Application.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/Submit_Application.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/auth_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/auth_service.py" afterDir="false" />
-    </list>
+    <list default="true" id="afd723f4-853f-435c-90fe-b5a04501d33f" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -111,6 +101,7 @@
       <updated>1761108557051</updated>
       <workItem from="1762494137421" duration="1480000" />
       <workItem from="1762496809189" duration="10053000" />
+      <workItem from="1762527066216" duration="358000" />
     </task>
     <servers />
   </component>
