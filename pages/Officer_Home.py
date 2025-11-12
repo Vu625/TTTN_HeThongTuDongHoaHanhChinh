@@ -196,6 +196,21 @@ def header(username):
             align-items: center;
             justify-content: center;
         }
+        .menu {
+            background-color: #E6F2FF;
+            padding: 10px;
+            text-align: center;
+        }
+        .menu a {
+            text-decoration: none;
+            color: #0055A5;
+            margin: 0 15px;
+            font-weight: 600;
+        }
+        .menu a:hover {
+            color: #FFB400;
+            
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -220,6 +235,13 @@ def header(username):
                 <div class="avatar">👮‍♂️</div>
             </div>
         </div>
+        <div class="menu">
+        <a href="/">Trang chủ</a>
+        <a href="/Giới_thiệu">Giới thiệu</a>
+        <a href="/Tin_tức">Tin tức</a>
+        <a href="/Văn_bản_pháp_lý">Văn bản pháp lý</a>
+        <a href="/Hỏi_đáp">Hỏi đáp</a>
+    </div>
         """,
         unsafe_allow_html=True,
     )
