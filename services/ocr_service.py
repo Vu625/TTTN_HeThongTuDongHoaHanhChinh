@@ -10,7 +10,11 @@ import io
 import streamlit as st
 import os
 import re
-from models.ocr.tessdata import config
+from  models.ocr.tessdata import config
+# from models.ocr.tessdata import config
+# tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# if tesseract_path:
+#     pytesseract.tesseract_cmd = tesseract_path
 
 UPLOAD_DIR = Path("data/db/uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -311,5 +315,10 @@ def ocr_cccd(image_path):
     return {
         "data": data,
         "has_title": has_title,
-        "is_cccd_document": is_cccd_document,
+
     }
+
+a = ocr_cccd("data\\db\\uploads\\GPLX_mattruoc.jpg")
+
+print(a)
+
