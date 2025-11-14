@@ -1,4 +1,5 @@
 import streamlit as st
+from services.llm_inference import ask_lmstudio
 import time
 
 st.set_page_config(page_title="Trợ lý ảo", layout="wide")
@@ -22,23 +23,68 @@ def on_suggest_click(prompt):
     st.session_state.suggest_prompt = prompt
 
 
+# def handle_prompt(prompt):
+#     """Xử lý logic gửi tin nhắn chung."""
+#     if not prompt.strip():
+#         return
+#
+#     st.session_state.messages.append(("user", prompt))
+#
+#     with st.spinner("Trợ lý đang phản hồi..."):
+#         time.sleep(1)
+#
+#     st.session_state.messages.append(("bot", f"Tôi đã nhận được: '{prompt}'"))
+#
+#     st.session_state.history.append(prompt)
+#     st.session_state.history = st.session_state.history[-10:]
+#     st.session_state.input_key += 1  # Thay đổi key để xóa input box
+#     st.rerun()
+
+# def handle_prompt(prompt):
+#     """Xử lý logic gửi tin nhắn chung."""
+#     if not prompt.strip():
+#         return
+#
+#     # 1. Thêm tin nhắn người dùng vào state
+#     st.session_state.messages.append(("user", prompt))
+#
+#     # 2. Hiển thị spinner và gọi hàm LM Studio
+#     with st.spinner("Trợ lý đang phản hồi..."):
+#         # **********************************************
+#         # *** CHỈNH SỬA Ở ĐÂY: GỌI HÀM LM STUDIO ***
+#         # **********************************************
+#         bot_response = ask_lmstudio(prompt)
+#         # **********************************************
+#
+#     # 3. Thêm phản hồi của bot vào state
+#     st.session_state.messages.append(("bot", bot_response))
+#
+#     # 4. Cập nhật lịch sử và xóa input box
+#     st.session_state.history.append(prompt)
+#     st.session_state.history = st.session_state.history[-10:]
+#     st.session_state.input_key += 1
+#     st.rerun() # Quan trọng để làm mới giao diện
 def handle_prompt(prompt):
-    """Xử lý logic gửi tin nhắn chung."""
+    """Xử lý logic gửi tin nhắn chung và buộc làm mới giao diện."""
     if not prompt.strip():
         return
 
+    # 1. Thêm tin nhắn người dùng vào state
     st.session_state.messages.append(("user", prompt))
 
+    # 2. Hiển thị spinner và gọi hàm LM Studio
     with st.spinner("Trợ lý đang phản hồi..."):
-        time.sleep(1)
+        # Đảm bảo hàm ask_lmstudio chỉ trả về chuỗi, không print ra terminal
+        bot_response = ask_lmstudio(prompt)
 
-    st.session_state.messages.append(("bot", f"Tôi đã nhận được: '{prompt}'"))
+    # 3. Thêm phản hồi của bot vào state
+    st.session_state.messages.append(("bot", bot_response))
 
+    # 4. Cập nhật lịch sử và quan trọng nhất là TĂNG KEY
     st.session_state.history.append(prompt)
     st.session_state.history = st.session_state.history[-10:]
-    st.session_state.input_key += 1  # Thay đổi key để xóa input box
+    st.session_state.input_key += 1
     st.rerun()
-
 
 # --- Khởi tạo Session State ---
 if "messages" not in st.session_state:
@@ -56,11 +102,20 @@ if "initial_input_box" not in st.session_state:
     st.session_state.initial_input_box = ""
 
 # Logic xử lý Gợi ý (Nằm ngoài callback)
+# if st.session_state.suggest_clicked:
+#     handle_prompt(st.session_state.suggest_prompt)
+#     st.session_state.suggest_clicked = False
+#     st.session_state.suggest_prompt = None
+#     del st.session_state["suggest_clicked"]
 if st.session_state.suggest_clicked:
-    handle_prompt(st.session_state.suggest_prompt)
+    # 1. RESET NGAY LẬP TỨC: Đảm bảo flag lặp vô tận được tắt ngay trước khi gọi handle_prompt
+    temp_prompt = st.session_state.suggest_prompt
     st.session_state.suggest_clicked = False
     st.session_state.suggest_prompt = None
 
+    # 2. XỬ LÝ PROMPT: Gọi handle_prompt với prompt đã lưu
+    # Hàm này sẽ chạy logic AI và gọi st.rerun()
+    handle_prompt(temp_prompt)
 # ======== 1. CSS Tối ưu ==========
 st.markdown(f"""
     <style>
@@ -68,7 +123,7 @@ st.markdown(f"""
     .block-container {{ padding: 0 !important; max-width: 100% !important; }}
     [data-testid="stHeader"], [data-testid="stToolbar"], footer {{ display: none !important; }}
     [data-testid="stAppViewContainer"] {{ background-color: white; }}
-    [data-testid="stVerticalBlock"] {{ height: 100vh; display: flex; flex-direction: column; overflow: hidden; }}
+    /*[data-testid="stVerticalBlock"] {{ height: 100vh; display: flex; flex-direction: column; overflow: hidden; }}*/
 
     /* 2. CSS Sidebar */
     [data-testid="stSidebar"] {{
@@ -175,9 +230,9 @@ if not st.session_state.messages:
         <div class="suggestion-box">
             <h3>Trợ lý ảo 👋🤖</h3>
             <p>Chào bạn! Bạn cần hỗ trợ gì hôm nay?</p>
-
-            <div class="suggestion-buttons-container">
     """, unsafe_allow_html=True)
+
+    st.markdown('<div class="suggestion-buttons-container">', unsafe_allow_html=True)
 
     # 1. CÁC NÚT GỢI Ý (ĐẶT LÊN TRÊN)
     with st.container():
@@ -188,11 +243,11 @@ if not st.session_state.messages:
                 st.button(prompt, on_click=on_suggest_click, args=(prompt,), key=f"suggest_{i}")
                 st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown("""
-            </div>
-
-            <div class="initial-input-container">
-    """, unsafe_allow_html=True)
+    # st.markdown("""
+    #         </div>
+    #
+    #         <div class="initial-input-container">
+    # """, unsafe_allow_html=True)
 
     # 2. KHUNG INPUT TRUNG TÂM (ĐẶT XUỐNG DƯỚI)
     st.text_input(
@@ -229,7 +284,7 @@ else:
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Vùng nhập liệu CỐ ĐỊNH (Chỉ hiển thị khi chat đã bắt đầu)
+# # Vùng nhập liệu CỐ ĐỊNH (Chỉ hiển thị khi chat đã bắt đầu)
 if st.session_state.messages:
     with st.container():
         with st.form("chat_form", clear_on_submit=True):

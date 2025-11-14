@@ -43,7 +43,7 @@ st.markdown(
         <a href="/Tin_tức">Tin tức</a>
         <a href="/Hướng_dẫn">Hướng dẫn</a>
         <a href="/Văn_bản_pháp_lý">Văn bản pháp lý</a>
-        <a href="/Hỏi_đáp">Hỏi đáp</a>
+        <a href="/AI_Assistant">Hỏi đáp</a>
         <a href="/Login_page" style="float:right; color:red;">Đăng nhập</a>
     </div>
     """,
