@@ -312,13 +312,30 @@ def ocr_cccd(image_path):
         print("\n❌ Lỗi: Không thể xác nhận là Căn cước công dân.")
 
     # Trả về toàn bộ dữ liệu để có thể xử lý tiếp
+    if 'So_CCCD' not in data:
+        data['So_CCCD']=""
+    if 'Ho_va_ten' not in data:
+        data['Ho_va_ten']=""
+    if 'Gioi_tinh' not in data:
+        data['Gioi_tinh']=""
+    if 'Que_quan' not in data:
+        data['Que_quan']=""
+    if 'Noi_thuong_tru' not in data:
+        data['Noi_thuong_tru']=""
+    data_ocr = [
+        {'name':"So_CCCD",'label':"Số Căn Cước Công Dân",'text': data['So_CCCD']},
+        {'name': "Ho_va_ten", 'label': "Họ Và Tên", 'text': data['Ho_va_ten']},
+        {'name': "Gioi_tinh", 'label': "Giới Tính", 'text': data['Gioi_tinh']},
+        {'name': "Que_quan", 'label': "Quê Quán", 'text': data['Que_quan']},
+        {'name': "Noi_thuong_tru", 'label': "Nơi Thường Trú", 'text': data['Noi_thuong_tru']},
+         ]
     return {
-        "data": data,
+        "data": data_ocr,
         "has_title": has_title,
 
     }
 
-a = ocr_cccd("data\\db\\uploads\\GPLX_mattruoc.jpg")
-
-print(a)
+# a = ocr_cccd("data\\db\\uploads\\GPLX_mattruoc.jpg")
+#
+# print(a)
 

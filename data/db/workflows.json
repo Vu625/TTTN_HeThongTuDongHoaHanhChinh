@@ -24,14 +24,17 @@
     "workflow_name": "Quy trình Kiểm tra/Duyệt Cơ bản",
     "steps": [
       {"step_id": "S10",
-        "action": "receive_application",
+        "action": "basic_check",
+        "role": "officer",
         "title": "Tiếp nhận hồ sơ"},
       {"step_id": "S11",
         "action": "extract_text",
+        "role": "officer",
         "title": "Xác minh thông tin & OCR",
         "next_step": "FINISH"},
       {"step_id": "S11",
         "action": "approve_result",
+        "role": "officer",
         "title": "Phê duyệt kết quả",
         "next_step": "FINISH"}
     ]

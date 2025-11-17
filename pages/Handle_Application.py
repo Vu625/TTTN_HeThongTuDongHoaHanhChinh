@@ -4,7 +4,7 @@ from services.data_viz_service import load_applications, save_applications, get_
 from pathlib import Path
 from services.workflow_service import ACTIONS
 
-check_role("officer")
+# check_role("officer")
 st.title("🧾 Xử lý hồ sơ công dân")
 
 apps = load_applications()
@@ -30,18 +30,33 @@ else:
     action_name = step_data.get("action")
     if action_name and action_name in ACTIONS:
         app = ACTIONS[action_name](app)
+        save_applications(apps)
     else:
         st.info("Không có hành động đặc biệt cho bước này.")
 
     st.divider()
 
     # === Điều hướng workflow ===
-    if current_step < len(steps):
-        next_title = steps[current_step]["title"]
-        if st.button(f"➡️ Chuyển sang '{next_title}'"):
-            app["current_step"] = current_step + 1
-            save_applications(apps)
-            st.success(f"Đã chuyển sang bước '{next_title}'")
-            st.rerun()
+
+    # if current_step < len(steps):
+    #     next_title = steps[current_step]["title"]
+    #     if st.button(f"➡️ Chuyển sang '{next_title}'"):
+    #         app["current_step"] = current_step + 1
+    #         save_applications(apps)
+    #         st.success(f"Đã chuyển sang bước '{next_title}'")
+    #         st.rerun()
+    # else:
+    #     st.success("🎉 Hồ sơ đã hoàn tất toàn bộ quy trình!")
+
+    if app.get("basic_check_result") == "rejected":
+        st.error("Hồ sơ đã bị từ chối. Không thể chuyển bước.")
     else:
-        st.success("🎉 Hồ sơ đã hoàn tất toàn bộ quy trình!")
+        if current_step < len(steps):
+            next_title = steps[current_step]["title"]
+            if st.button(f"➡️ Chuyển sang '{next_title}'"):
+                app["current_step"] = current_step + 1
+                save_applications(apps)
+                st.success(f"Đã chuyển sang bước '{next_title}'")
+                st.rerun()
+        else:
+            st.success("🎉 Hồ sơ đã hoàn tất toàn bộ quy trình!")

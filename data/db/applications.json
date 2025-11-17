@@ -1,25 +1,5 @@
 [
   {
-    "application_id": "APP20250001",
-    "citizen_id": "C003",
-    "form_template_id": "T001",
-    "form_data": {
-      "Ho_va_ten": "Nguyễn Văn A",
-      "Ngay_sinh": "15/05/1990",
-      "So_CCCD": "001190005123",
-      "Que_quan": "Hà Nội"
-    },
-    "status": "processing",
-    "current_workflow_step": "step_2",
-    "assigned_officer_id": "O005",
-    "submitted_at": "2025-10-22T10:00:00Z",
-    "last_update": "2025-10-22T10:15:00Z",
-    "file_paths": [
-      "data/uploads/C001/doc_cccd.pdf"
-    ],
-    "current_step": 2
-  },
-  {
     "application_id": "192b9d91-ebba-4bee-8825-22446c4f90c3",
     "citizen_id": "C001",
     "form_template_id": "T001",
@@ -41,7 +21,7 @@
     "application_id": "ba867ef8-abf5-4e7c-9af0-4cadb44005be",
     "citizen_id": "C001",
     "form_template_id": "T001",
-    "current_step": 1,
+    "current_step": 2,
     "status": "approved",
     "submitted_at": "2025-10-30T13:56:04.155990",
     "documents": [
@@ -51,7 +31,8 @@
       "So_CCCD": "1234445566788",
       "Ho_va_ten": "Vũ Nguyễn Đỗ Anh",
       "Que_quan": "Bắc Ninh"
-    }
+    },
+    "ocr_texts": {}
   },
   {
     "application_id": "6017e765-cf33-4476-8a89-c621b618f1b0",
@@ -66,13 +47,15 @@
       "So_CCCD": "142343353534533453",
       "Ho_va_ten": "trường phạm",
       "Que_quan": "bình phước"
-    }
+    },
+    "current_step": 2,
+    "ocr_texts": {}
   },
   {
     "application_id": "ec366818-f16d-4fa0-8e80-2a1e447931e7",
     "citizen_id": "C001",
     "form_template_id": "T001",
-    "status": "submitted",
+    "status": "rejected",
     "submitted_at": "2025-11-05T14:30:17.048323",
     "documents": [
       "data\\db\\uploads\\Cancuoc_vu.png"
@@ -82,6 +65,33 @@
       "Ho_va_ten": "",
       "Que_quan": ""
     },
-    "current_step": 2
+    "current_step": 1,
+    "ocr_texts": {
+      "Cancuoc_vu.png": {
+        "So_CCCD": "079204026877",
+        "Ho_va_ten": "NGUYÊN ĐỖ ANH VŨ ..",
+        "Gioi_tinh": "Nam",
+        "Que_quan": ",ộ  TP.HCM",
+        "Noi_thuong_tru": "Place of residenoe:"
+      }
+    },
+    "basic_check_result": "rejected",
+    "reject_reason": "Không đủ thông tin yêu cầu"
+  },
+  {
+    "application_id": "097e1db7-48a7-4575-896e-97842ed8e7b8",
+    "citizen_id": "C001",
+    "form_template_id": "T001",
+    "status": "submitted",
+    "submitted_at": "2025-11-17T09:48:46.063074",
+    "documents": [
+      "data\\db\\uploads\\Cancuoc_vu.png"
+    ],
+    "form_data": {
+      "So_CCCD": "9292930394099023",
+      "Ho_va_ten": "Đức  LÊ",
+      "Que_quan": "ĐẮC LẮC"
+    },
+    "current_step": 1
   }
 ]

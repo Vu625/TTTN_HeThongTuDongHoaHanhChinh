@@ -74,6 +74,9 @@ elif page == "🏢 Tổ chức":
 elif page == "⚙️ Cài đặt":
     st.subheader("Cài đặt tài khoản")
     st.write("Chỉnh sửa thông tin cá nhân, mật khẩu, bảo mật...")
+elif page == "🔔 Thông báo":
+    st.switch_page("pages/4_🔔_Citizen_Notifications.py")
+
 # Định nghĩa CSS cho Thanh bên (Sidebar) mới và Header
 CUSTOM_CSS = """
 <style>
