@@ -50,12 +50,13 @@
 import streamlit as st
 from services.layout import load_common_layout
 from services.auth_service import check_role
-# check_role("citizen")
+from services.layout import display_back_button, init_notification_state
+check_role("citizen")
 page = load_common_layout()
 
 st.set_page_config(page_title="Công dân - VNeID", layout="wide")
 
-# Gọi layout sidebar chung
+init_notification_state()
 
 # Giao diện chính theo menu
 st.title("👨‍🌾 Trang công dân")
@@ -74,8 +75,6 @@ elif page == "🏢 Tổ chức":
 elif page == "⚙️ Cài đặt":
     st.subheader("Cài đặt tài khoản")
     st.write("Chỉnh sửa thông tin cá nhân, mật khẩu, bảo mật...")
-elif page == "🔔 Thông báo":
-    st.switch_page("pages/4_🔔_Citizen_Notifications.py")
 
 # Định nghĩa CSS cho Thanh bên (Sidebar) mới và Header
 CUSTOM_CSS = """
@@ -121,6 +120,23 @@ CUSTOM_CSS = """
 [data-testid="stSidebar"] {
     background-color: #fbf8f5 !important; 
     padding: 20px 0 !important;
+}
+/* 🔥 THÊM CSS CỦA MENU VÀO ĐÂY 🔥 */
+.menu {
+    background-color: #E6F2FF;
+    padding: 10px;
+    text-align: center;
+    /* Thêm một đường kẻ nhỏ để phân tách rõ ràng hơn */
+    border-bottom: 1px solid #0055A5; 
+}
+.menu a {
+    text-decoration: none;
+    color: #0055A5;
+    margin: 0 15px;
+    font-weight: 600;
+}
+.menu a:hover {
+    color: #FFB400;
 }
 
 /* Kiểu cho mỗi mục trong thanh bên */
@@ -179,7 +195,9 @@ div.stButton > button:hover {
 [data-testid="stSidebar"] div.stButton {
     margin-top: 5px;
 }
-
+#notif-container {
+    display: inline-block;
+}
 </style>
 """
 
@@ -191,6 +209,7 @@ PAGES = {
     # "Cài đặt": "⚙️"
 }
 
+unread = sum(n["read"] == False for n in st.session_state.citizen_notifications)
 
 # 🧭 1. Thanh tiêu đề (Header) - Đã tối giản
 def header(username):
@@ -206,16 +225,23 @@ def header(username):
                 </div>
             </div>
             <div class="header-right">
-                <span>🔔</span>
+                <a href="/Citizen_Notifications" style="color:white; text-decoration:none; font-size:18px;">
+                    🔔 <span style="font-weight:bold;">({unread})</span>
+                </a>
                 <span>{username}</span>
                 <div class="avatar">👤</div>
             </div>
         </div>
+        <div class="menu">
+            <a href="/">Trang chủ</a>
+            <a href="/Submit_Application">Nộp hồ sơ</a>
+            <a href="/Tin_tức">Tổ chức</a>
+            <a href="/Hỏi_đáp">Hỏi đáp</a>
+            <a href="/Văn_bản_pháp_lý">Cài đặt</a>
+        </div>
         """,
         unsafe_allow_html=True,
     )
-
-
 # 📂 2. Thanh điều hướng bên trái (Sidebar) - Đã tùy chỉnh giao diện
 def sidebar():
     # Khởi tạo trạng thái trang nếu chưa có

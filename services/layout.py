@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from services.auth_service import logout
 def load_common_layout():
     """Hiển thị layout (sidebar) chung cho tất cả các trang."""
@@ -65,4 +66,46 @@ def display_back_button():
         home_page_path,
         label=label,
         icon="🏠"
+    )
+# def add_notification(message, ntype="info"):
+#     """
+#     ntype = 'success', 'error', 'info'
+#     """
+#     st.session_state.citizen_notifications.append({
+#         "message": message,
+#         "type": ntype,
+#         "read": False
+#     })
+#
+# def init_notification_state():
+#     if "citizen_notifications" not in st.session_state:
+#         st.session_state.citizen_notifications = []
+def init_notification_state():
+    if "citizen_notifications" not in st.session_state:
+        st.session_state.citizen_notifications = []
+
+def notification_bell():
+    unread = sum(1 for n in st.session_state.citizen_notifications if not n["read"])
+
+    components.html(
+        f"""
+        <div style="position: relative; display: inline-block; cursor:pointer;"
+             onclick="window.location.href='?page=🔔+Thông+báo'">
+            <span style="font-size: 22px;">🔔</span>
+
+            {f'''
+            <span style="
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: red;
+                color: white;
+                padding: 2px 6px;
+                border-radius: 50%;
+                font-size: 10px;
+            ">{unread}</span>
+            ''' if unread > 0 else ""}
+        </div>
+        """,
+        height=40,
     )
