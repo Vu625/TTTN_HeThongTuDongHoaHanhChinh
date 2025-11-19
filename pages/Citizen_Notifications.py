@@ -1,39 +1,38 @@
 import streamlit as st
-from services.layout import display_back_button, init_notification_state
 from services.auth_service import check_role
+from services.data_viz_service import load_applications , get_name_form
 
-# Khởi tạo danh sách thông báo nếu chưa có
-if "citizen_notifications" not in st.session_state:
-    st.session_state.citizen_notifications = []
+check_role("citizen")
 
-init_notification_state()
+st.title("🔔 Thông báo hồ sơ")
 
-st.title("📨 Thông báo của bạn")
+apps = load_applications()
+user_apps = [a for a in apps if a["citizen_id"] == st.session_state["user_id"]]
 
-# display_back_button()
+has_message = False
 
-notifications = st.session_state.citizen_notifications
+for app in user_apps:
+    if app.get("basic_check_result") == "rejected":
+        has_message = True
+        st.error(f"""
+        ### ❌ Hồ sơ bị từ chối
+        **Mã hồ sơ:** {app['application_id']}  
+        **Thủ tục:** {get_name_form(app['form_template_id'])}  
+        **Lý do:** {app.get('reject_reason', 'Không rõ')}  
+        """)
+        st.divider()
+    if app.get("status") == "approved":
+        has_message = True
+        st.success(f"""
+            ### ✅ Hồ sơ đã được xử lý hoàn tất  
+            **Mã hồ sơ:** {app['application_id']}  
+            **Thủ tục:** {get_name_form(app['form_template_id'])} 
+            """)
 
-if not notifications:
-    st.info("Bạn chưa có thông báo nào.")
-else:
-    for i, n in enumerate(notifications):
-        box_color = {
-            "success": "lightgreen",
-            "error": "salmon",
-            "info": "lightblue"
-        }.get(n["type"], "white")
+        note = app.get("approve_note")
+        if note:
+            st.info(f"**Ghi chú từ cán bộ:** {note}")
+        st.divider()
 
-        with st.container():
-            st.markdown(
-                f"""
-                <div style='padding:10px; border-radius:8px; background:{box_color}'>
-                    <b>{n['message']}</b><br>
-                    <small style='opacity:0.7'>Trạng thái: {"🔵 Chưa đọc" if not n["read"] else "⚪ Đã đọc"}</small>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-            # Mark as read
-            if not n["read"]:
-                notifications[i]["read"] = True
+if not has_message:
+    st.info("✨ Không có thông báo nào.")

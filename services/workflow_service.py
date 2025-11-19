@@ -181,9 +181,30 @@ def extract_text_action(app):
             # ...
     return app
 
+# def approve_result(app):
+#     st.success("✅ Hồ sơ đã được phê duyệt!")
+#     app["status"] = "approved"
+#     return app
 def approve_result(app):
-    st.success("✅ Hồ sơ đã được phê duyệt!")
-    app["status"] = "approved"
+    st.subheader("🎉 Phê duyệt kết quả hồ sơ")
+
+    st.markdown("### ✔️ Hồ sơ đủ điều kiện phê duyệt")
+    st.info("Bạn có thể thêm ghi chú gửi cho Công dân (tùy chọn).")
+
+    note = st.text_area(
+        "Ghi chú gửi cho công dân (không bắt buộc):",
+        value=app.get("approve_note", ""),
+        placeholder="Ví dụ: Vui lòng đến Cục Cảnh Sát để nhận giấy tờ liên quan.",
+        key="approve_note_input"
+    )
+
+    if st.button("📤 Xác nhận phê duyệt", key="approve_submit"):
+        app["status"] = "approved"
+        app["approve_result"] = "success"
+        app["approve_note"] = note
+        st.success("Hồ sơ đã được phê duyệt thành công!")
+        return app
+
     return app
 
 # ========== Bộ ánh xạ hàm ==========
