@@ -1,6 +1,6 @@
 import streamlit as st
 from services.auth_service import check_role
-from services.data_viz_service import load_applications
+from services.data_viz_service import load_applications , get_name_form
 
 check_role("citizen")
 
@@ -17,9 +17,21 @@ for app in user_apps:
         st.error(f"""
         ### ❌ Hồ sơ bị từ chối
         **Mã hồ sơ:** {app['application_id']}  
-        **Thủ tục:** {app['form_template_id']}  
+        **Thủ tục:** {get_name_form(app['form_template_id'])}  
         **Lý do:** {app.get('reject_reason', 'Không rõ')}  
         """)
+        st.divider()
+    if app.get("status") == "approved":
+        has_message = True
+        st.success(f"""
+            ### ✅ Hồ sơ đã được xử lý hoàn tất  
+            **Mã hồ sơ:** {app['application_id']}  
+            **Thủ tục:** {get_name_form(app['form_template_id'])} 
+            """)
+
+        note = app.get("approve_note")
+        if note:
+            st.info(f"**Ghi chú từ cán bộ:** {note}")
         st.divider()
 
 if not has_message:
