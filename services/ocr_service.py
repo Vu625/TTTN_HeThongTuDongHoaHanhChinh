@@ -10,6 +10,8 @@ import io
 import streamlit as st
 import os
 import re
+from typing import List, Dict
+import fitz
 from  models.ocr.tessdata import config
 # from models.ocr.tessdata import config
 # tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
@@ -335,6 +337,83 @@ def ocr_cccd(image_path):
 
     }
 
+OCR_AVAILABLE = True
+def read_text_from_pdf(pdf_path: str) -> Dict[str, any]:
+    """
+    Đọc và trích xuất toàn bộ văn bản từ mỗi trang của file PDF.
+    Nếu file là PDF dạng ảnh quét (scanned PDF), nó sẽ tự động chuyển sang dùng OCR.
+    """
+    text_by_page = []
+
+    try:
+        # Kiểm tra sự tồn tại của file trước khi mở
+        if not os.path.exists(pdf_path):
+            return {
+                "status": "ERROR",
+                "message": f"Lỗi: Không tìm thấy file tại đường dẫn {pdf_path}",
+                "pages_count": 0,
+                "text_by_page": []
+            }
+
+        document = fitz.open(pdf_path)
+
+        if len(document) == 0:
+            document.close()
+            return {
+                "status": "ERROR",
+                "message": "Lỗi: Tài liệu PDF trống, không có trang nào.",
+                "pages_count": 0,
+                "text_by_page": []
+            }
+
+        # Lặp qua từng trang
+        for page_num in range(len(document)):
+            page = document.load_page(page_num)
+
+            # 1. THỬ TRÍCH XUẤT VĂN BẢN TRỰC TIẾP (PHƯƠNG PHÁP CHUẨN)
+            text = page.get_text("text")
+
+            # 2. KIỂM TRA NẾU VĂN BẢN TRỐNG VÀ OCR CÓ SẴN -> THỰC HIỆN OCR DỰ PHÒNG
+            if not text.strip() and OCR_AVAILABLE:
+                print(f"-> Trang {page_num + 1}: Không tìm thấy lớp văn bản. Đang chuyển sang dùng OCR...")
+                try:
+                    # Tăng độ phân giải lên 300 DPI để OCR chính xác hơn
+                    zoom_matrix = fitz.Matrix(3, 3)
+                    pix = page.get_pixmap(matrix=zoom_matrix)
+
+                    # Chuyển Pixmap (PyMuPDF) sang đối tượng PIL Image
+                    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+                    # Thực hiện OCR, sử dụng ngôn ngữ Tiếng Việt ('vie') và Tiếng Anh ('eng')
+                    text = pytesseract.image_to_string(img, lang='vie+eng')
+
+                    if not text.strip():
+                        text = "(Không trích xuất được văn bản nào bằng OCR)"
+
+                except Exception as e:
+                    text = f"(Lỗi OCR: {e}) - Vui lòng kiểm tra lại cấu hình Tesseract."
+
+            elif not text.strip() and not OCR_AVAILABLE:
+                text = "(Không tìm thấy lớp văn bản. Không thể dùng OCR vì thiếu thư viện.)"
+
+            text_by_page.append(text)
+
+        # Đóng tài liệu sau khi hoàn tất
+        document.close()
+
+        return {
+            "status": "SUCCESS",
+            "pages_count": len(text_by_page),
+            "text_by_page": text_by_page
+        }
+
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "message": f"Lỗi khi xử lý PDF: {e}",
+            "pages_count": 0,
+            "text_by_page": []
+        }
 # a = ocr_cccd("data\\db\\uploads\\GPLX_mattruoc.jpg")
 #
 # print(a)
