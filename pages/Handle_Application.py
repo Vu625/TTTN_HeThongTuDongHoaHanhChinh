@@ -3,18 +3,19 @@ from services.auth_service import check_role
 from services.data_viz_service import load_applications, save_applications, get_workflow_for_procedure , user_full_name , get_name_form
 from pathlib import Path
 from services.workflow_service import ACTIONS
+from services.layout import display_back_button
 
-# check_role("officer")
+check_role("officer")
+display_back_button()
 st.title("🧾 Xử lý hồ sơ công dân")
-
 apps = load_applications()
 
 if not apps:
     st.info("Chưa có hồ sơ nào được gửi")
 else:
     selected = st.selectbox(
-        "Chọn hồ sơ cần xem:",
-        options=[f"{a['application_id']} - {get_name_form(a['form_template_id'])}" for a in apps]
+        "Chọn hồ sơ cần duyệt:",
+        options=[f"{get_name_form(a['form_template_id'])} - Công Dân {user_full_name(a['citizen_id'] )} - {a['application_id']}" for a in apps if a ['status']=="submitted"]
     )
 
     app = next(a for a in apps if a['application_id'] in selected)

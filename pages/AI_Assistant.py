@@ -1,6 +1,10 @@
 import streamlit as st
 from services.llm_inference import ask_lmstudio
 import time
+from services.auth_service import check_role
+from services.layout import display_back_button
+check_role("citizen")
+display_back_button()
 
 st.set_page_config(page_title="Trợ lý ảo", layout="wide")
 

@@ -1,9 +1,10 @@
 import streamlit as st
 from services.auth_service import check_role
 from services.data_viz_service import load_applications , get_name_form
+from services.layout import display_back_button
 
-check_role("citizen")
-
+# check_role("citizen")
+display_back_button()
 st.title("🔔 Thông báo hồ sơ")
 
 apps = load_applications()

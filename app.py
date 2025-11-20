@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+from services.layout import check_and_switch
 
 current_file_name = os.path.basename(__file__)
 
@@ -128,18 +129,6 @@ st.markdown('<div id="custom-menu-container">', unsafe_allow_html=True)
 
 # Tạo 2 cột chính: menu điều hướng và nút đăng nhập
 col_nav, col_login = st.columns([9, 1])
-
-
-# Hàm kiểm tra và chuyển trang
-def check_and_switch(col, button_text, page_file, key):
-    is_current_page = (current_file_name == page_file)
-    with col:
-        if st.button(button_text, key=key, disabled=is_current_page):
-            if page_file == "app.py":
-                st.switch_page(page_file)
-            else:
-                st.switch_page(f"pages/{page_file}")
-
 
 # --- CÁC NÚT ĐIỀU HƯỚNG ---
 with col_nav:

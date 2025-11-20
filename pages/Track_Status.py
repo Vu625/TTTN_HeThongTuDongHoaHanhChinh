@@ -1,5 +1,9 @@
 import streamlit as st
 from services.data_viz_service import load_applications,get_workflow_for_procedure,get_name_form
+from services.layout import display_back_button
+from services.auth_service import check_role
+check_role("citizen")
+display_back_button()
 st.subheader("📚 Hồ sơ của bạn")
 apps = load_applications()
 user_apps = [a for a in apps if a["citizen_id"] == st.session_state["user_id"]]

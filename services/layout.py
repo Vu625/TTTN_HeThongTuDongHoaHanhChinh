@@ -1,6 +1,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 from services.auth_service import logout
+import os
 def load_common_layout():
     """Hiển thị layout (sidebar) chung cho tất cả các trang."""
     with st.sidebar:
@@ -52,20 +53,20 @@ def display_back_button():
         home_page_path = "pages/Admin_Dashboard.py"
         label = "⬅️ Quay lại Bảng Điều Khiển Admin"
     elif role == "officer":
-        home_page_path = "pages/Officer_Dashboard.py"
+        home_page_path = "pages/Officer_Home.py"
         label = "⬅️ Quay lại Trang Cán bộ"
     else:
         # Mặc định hoặc khi chưa đăng nhập
         # app.py thường là trang đăng nhập hoặc trang giới thiệu
         home_page_path = "app.py"
-        label = "⬅️ Quay lại Trang Đăng Nhập"
+        label = "⬅️ Quay lại Trang Chủ"
 
     # 2. Hiển thị nút page_link
-    st.markdown("---")  # Thêm một đường kẻ để tách biệt nút
+    # st.markdown("---")  # Thêm một đường kẻ để tách biệt nút
     st.page_link(
         home_page_path,
         label=label,
-        icon="🏠"
+        # icon="🏠"
     )
 # def add_notification(message, ntype="info"):
 #     """
@@ -109,3 +110,14 @@ def notification_bell():
         """,
         height=40,
     )
+
+current_file_name = os.path.basename(__file__)
+# Hàm kiểm tra và chuyển trang
+def check_and_switch(col, button_text, page_file, key):
+    is_current_page = (current_file_name == page_file)
+    with col:
+        if st.button(button_text, key=key, disabled=is_current_page):
+            if page_file == "app.py":
+                st.switch_page(page_file)
+            else:
+                st.switch_page(f"pages/{page_file}")

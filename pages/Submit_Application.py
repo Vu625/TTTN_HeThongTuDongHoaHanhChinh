@@ -5,11 +5,11 @@ from services.rag_engine import generate_answer
 from services.data_viz_service import load_forms, load_applications, save_applications, get_workflow_for_procedure, get_name_form
 from datetime import datetime
 import uuid
-from services.layout import load_common_layout
+from services.layout import load_common_layout, display_back_button
 from services.auth_service import check_role
-# check_role("citizen")
+check_role("citizen")
+display_back_button()
 page = load_common_layout()
-# check_role("citizen")
 st.title("🏠 Nộp Hồ Sơ")
 
 # menu = st.sidebar.radio("Chức năng", ["Hồ sơ đã gửi", "💬 Chatbot Hành chính AI"])

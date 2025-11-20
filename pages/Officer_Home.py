@@ -23,10 +23,11 @@
 
 
 import streamlit as st
-from services.auth_service import check_role
+from services.auth_service import check_role, logout
 from services.data_viz_service import load_applications, save_applications, get_workflow_for_procedure , user_full_name , get_name_form
 from pathlib import Path
 from services.workflow_service import ACTIONS
+from services.layout import check_and_switch
 
 
 # st.title("🧾 Xử lý hồ sơ công dân")
@@ -235,16 +236,31 @@ def header(username):
                 <div class="avatar">👮‍♂️</div>
             </div>
         </div>
-        <div class="menu">
-        <a href="/">Trang chủ</a>
-        <a href="/Giới_thiệu">Giới thiệu</a>
-        <a href="/Tin_tức">Tin tức</a>
-        <a href="/Văn_bản_pháp_lý">Văn bản pháp lý</a>
-        <a href="/Hỏi_đáp">Hỏi đáp</a>
-    </div>
         """,
         unsafe_allow_html=True,
     )
+    col_nav, col_login = st.columns([9, 1])
+
+    # --- CÁC NÚT ĐIỀU HƯỚNG ---
+    with col_nav:
+        st.markdown('<div class="nav-buttons">', unsafe_allow_html=True)
+        nav_cols = st.columns([1, 1, 1, 1, 1.3, 1])
+
+        check_and_switch(nav_cols[0], "Trang chủ", "app.py", "btn_home")
+        check_and_switch(nav_cols[1], "Duyệt Hồ Sơ", "Handle_Application.py", "btn_intro")
+        check_and_switch(nav_cols[2], "Tiến Độ", "Track_Status.py", "btn_news")
+        check_and_switch(nav_cols[3], "Hướng dẫn", "Huong_dan.py", "btn_guide")
+        check_and_switch(nav_cols[4], "Văn bản pháp lý", "app_Legal_documents.py", "btn_legal")
+        check_and_switch(nav_cols[5], "Hỏi đáp", "AI_Assistant.py", "btn_ai")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- NÚT ĐĂNG XUẤT ---
+    with col_login:
+        # st.markdown('<div id="login-btn-wrapper">', unsafe_allow_html=True)
+        if st.button("Đăng xuất", key="login_btn"):
+            logout()
+        # st.markdown('</div>', unsafe_allow_html=True)
 
 # 📂 2. Thanh điều hướng bên trái
 def sidebar():

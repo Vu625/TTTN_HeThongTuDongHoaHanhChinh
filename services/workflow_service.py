@@ -96,10 +96,10 @@ def basic_check(app):
         st.success("Đã ghi nhận lý do từ chối.")
 
         return app
-
-    # NÚT XONG
-    if st.button("Xong"):
-        st.success("Hoàn tất. Công dân sẽ nhận thông báo.")
+    #
+    # # NÚT XONG
+    # if st.button("Xong"):
+    #     st.success("Hoàn tất. Công dân sẽ nhận thông báo.")
 
     return app
 

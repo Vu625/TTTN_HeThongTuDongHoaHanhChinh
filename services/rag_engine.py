@@ -149,8 +149,13 @@ class CustomTfidfVectorizer:
             unique_tokens = set(tokens)
             term_document_frequency.update(unique_tokens)
 
-        self.vocabulary = {term: idx for idx, term in enumerate(term_document_frequency.keys())
-                           if term not in self.stop_words}
+        # self.vocabulary = {term: idx for idx, term in enumerate(term_document_frequency.keys())
+        #                    if term not in self.stop_words}
+        valid_terms = [term for term in term_document_frequency.keys()
+                       if term not in self.stop_words]
+
+        # Chỉ số phải được gán tuần tự dựa trên danh sách đã lọc
+        self.vocabulary = {term: idx for idx, term in enumerate(valid_terms)}
 
         self.idf = {
             term: math.log((document_count + 1) / (df + 1)) + 1
@@ -304,10 +309,11 @@ def vector_search_boosted(query, vectorizer, tfidf_matrix, chunks, k=5, boost_fa
     return results
 
 def prepare(file_name):
+    word_stop = ["là","thì","của"]
     text = read_txt(file_name)
     chunks = split_into_chunks(text)
     raw_texts = [chunk['content'] for chunk in chunks]
-    vectorizer = CustomTfidfVectorizer().fit(raw_texts)
+    vectorizer = CustomTfidfVectorizer(stop_words=word_stop).fit(raw_texts)
     tfidf_matrix = vectorizer.transform(raw_texts)
     print(f"✅ Ma trận TF-IDF đã tạo: **{tfidf_matrix.shape}**")
     name = file_name.split('.')[0]

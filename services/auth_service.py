@@ -48,7 +48,11 @@ def logout():
 def check_role(required_role):
     if "is_logged_in" not in st.session_state:
         st.error("Bạn chưa đăng nhập!")
+        if st.button("Đăng Nhập Ngay!"):
+            st.switch_page("pages/Login_page.py")
         st.stop()
     if st.session_state.get("role") != required_role:
         st.error("Bạn không có quyền truy cập trang này!")
+        if st.button("Đăng Nhập Lại?"):
+            st.switch_page("pages/Login_page.py")
         st.stop()
