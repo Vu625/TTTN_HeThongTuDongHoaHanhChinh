@@ -248,7 +248,7 @@ def header(username):
 
         check_and_switch(nav_cols[0], "Trang chủ", "app.py", "btn_home")
         check_and_switch(nav_cols[1], "Duyệt Hồ Sơ", "Handle_Application.py", "btn_intro")
-        check_and_switch(nav_cols[2], "Tiến Độ", "Track_Status.py", "btn_news")
+        check_and_switch(nav_cols[2], "Lịch Sử Duyệt", "History_Handle.py", "btn_news")
         check_and_switch(nav_cols[3], "Hướng dẫn", "Huong_dan.py", "btn_guide")
         check_and_switch(nav_cols[4], "Văn bản pháp lý", "app_Legal_documents.py", "btn_legal")
         check_and_switch(nav_cols[5], "Hỏi đáp", "AI_Assistant.py", "btn_ai")

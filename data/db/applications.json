@@ -3,8 +3,8 @@
     "application_id": "192b9d91-ebba-4bee-8825-22446c4f90c3",
     "citizen_id": "C001",
     "form_template_id": "T001",
-    "current_step": 2,
-    "status": "approved",
+    "current_step": 1,
+    "status": "rejected",
     "submitted_at": "2025-10-30T12:10:05.610556",
     "documents": [
       "data\\db\\uploads\\CCCD_mattruoc.jpg",
@@ -15,24 +15,49 @@
       "Ho_va_ten": "Vũ Nguyễn Đỗ Anh",
       "Que_quan": ""
     },
-    "ocr_texts": {}
+    "ocr_texts": {},
+    "basic_check_result": "rejected",
+    "reject_reason": "Không đủ thông tin yêu cầu",
+    "notification": {
+      "seen": true,
+      "type": "rejected",
+      "message": "Không đủ thông tin yêu cầu",
+      "time": "2025-11-21 11:01:19"
+    }
   },
   {
     "application_id": "ba867ef8-abf5-4e7c-9af0-4cadb44005be",
     "citizen_id": "C001",
     "form_template_id": "T001",
-    "current_step": 2,
+    "current_step": 3,
     "status": "approved",
     "submitted_at": "2025-10-30T13:56:04.155990",
     "documents": [
-      "data\\db\\uploads\\GPLX_mattruoc.jpg"
+      "data\\db\\uploads\\Cancuoc_vu.png"
     ],
     "form_data": {
       "So_CCCD": "1234445566788",
       "Ho_va_ten": "Vũ Nguyễn Đỗ Anh",
       "Que_quan": "Bắc Ninh"
     },
-    "ocr_texts": {}
+    "ocr_texts": {
+      "Cancuoc_vu.png": {
+        "So_CCCD": "079204026877",
+        "Ho_va_ten": "NGUYÊN ĐỖ ANH VŨ ..",
+        "Gioi_tinh": "Nam",
+        "Que_quan": ",ộ  TP.HCM",
+        "Noi_thuong_tru": "Place of residenoe:"
+      }
+    },
+    "approve_result": "success",
+    "approve_note": "vui lòng đến CCS để nhận CCCD",
+    "basic_check_result": "approved",
+    "notification": {
+      "seen": true,
+      "type": "approved",
+      "message": "vui lòng đến CCS để nhận CCCD",
+      "time": "2025-11-21 11:08:44"
+    }
   },
   {
     "application_id": "6017e765-cf33-4476-8a89-c621b618f1b0",
@@ -41,7 +66,7 @@
     "status": "submitted",
     "submitted_at": "2025-11-05T10:20:38.327161",
     "documents": [
-      "data\\db\\uploads\\chungchi.jpg"
+      "data\\db\\uploads\\Cancuoc_vu.png"
     ],
     "form_data": {
       "So_CCCD": "142343353534533453",
@@ -49,7 +74,8 @@
       "Que_quan": "bình phước"
     },
     "current_step": 2,
-    "ocr_texts": {}
+    "ocr_texts": {},
+    "basic_check_result": "approved"
   },
   {
     "application_id": "ec366818-f16d-4fa0-8e80-2a1e447931e7",
@@ -69,14 +95,20 @@
     "ocr_texts": {
       "Cancuoc_vu.png": {
         "So_CCCD": "079204026877",
-        "Ho_va_ten": "NGUYÊN ĐỖ ANH VŨ ..",
+        "Ho_va_ten": "NGUYÊN ĐỖ ANH VŨ",
         "Gioi_tinh": "Nam",
-        "Que_quan": ",ộ  TP.HCM",
-        "Noi_thuong_tru": "Place of residenoe:"
+        "Que_quan": "TP.HCM",
+        "Noi_thuong_tru": "380/6 Phạm Văn chieu"
       }
     },
     "basic_check_result": "rejected",
-    "reject_reason": "Không đủ thông tin yêu cầu"
+    "reject_reason": "Nộp sai thông tin yêu cầu",
+    "notification": {
+      "seen": true,
+      "type": "rejected",
+      "message": "Nộp sai thông tin yêu cầu",
+      "time": "2025-11-21 11:15:36"
+    }
   },
   {
     "application_id": "097e1db7-48a7-4575-896e-97842ed8e7b8",
@@ -92,6 +124,8 @@
       "Ho_va_ten": "Đức  LÊ",
       "Que_quan": "ĐẮC LẮC"
     },
-    "current_step": 1
+    "current_step": 1,
+    "basic_check_result": "approved",
+    "ocr_texts": {}
   }
 ]

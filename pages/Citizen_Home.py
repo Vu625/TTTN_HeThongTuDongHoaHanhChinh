@@ -50,7 +50,7 @@
 import streamlit as st
 from services.layout import load_common_layout
 from services.auth_service import check_role,logout
-from services.layout import init_notification_state, check_and_switch
+from services.layout import init_notification_state, check_and_switch, notification_bell
 check_role("citizen")
 page = load_common_layout()
 
@@ -79,15 +79,15 @@ elif page == "⚙️ Cài đặt":
 # Định nghĩa CSS cho Thanh bên (Sidebar) mới và Header
 CUSTOM_CSS = """
 <style>
-/* 1. CSS Cho Header */
 .header {
-    background-color: #B71C1C; /* đỏ đậm */
-    padding: 10px 30px;
+    background-color: #B71C1C;
+    padding: 10px 20px; /* Giảm padding để khớp với columns */
     display: flex;
     align-items: center;
     justify-content: space-between;
     color: white;
     border-bottom: 4px solid #FFD54F;
+    margin-bottom: 10px;
 }
 .header-left {
     display: flex;
@@ -97,11 +97,33 @@ CUSTOM_CSS = """
     width: 55px;
     margin-right: 10px;
 }
-.header-right {
+
+/* --- CSS MỚI CHO NÚT CHUÔNG PYTHON --- */
+/* Class này sẽ được áp dụng cho nút bấm để nó hòa vào nền đỏ */
+div.stButton.bell-btn > button {
+    background-color: #B71C1C !important; /* Nền đỏ giống header */
+    color: white !important;
+    border: none !important;
+    font-size: 18px !important;
+    padding: 0px 5px !important; /* Thu gọn padding */
+    margin-top: 12px; /* Căn chỉnh chiều dọc cho khớp với avatar */
+    font-weight: bold !important;
+    box-shadow: none !important;
+}
+
+div.stButton.bell-btn > button:hover {
+    color: #FFD54F !important; /* Màu vàng khi hover */
+    background-color: #a31616 !important; /* Đỏ đậm hơn chút khi hover */
+}
+
+/* CSS cho phần Avatar bên phải (HTML) */
+.header-right-user {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
     font-size: 16px;
+    color: white;
+    justify-content: flex-end;
 }
 .avatar {
     width: 40px;
@@ -113,128 +135,80 @@ CUSTOM_CSS = """
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: 10px;
 }
 
-/* 2. CSS Cho Sidebar Tùy chỉnh */
-/* Áp dụng màu nền be/hồng nhạt cho toàn bộ sidebar, như trong ảnh bạn gửi */
-[data-testid="stSidebar"] {
-    background-color: #fbf8f5 !important; 
-    padding: 20px 0 !important;
-}
-/* 🔥 THÊM CSS CỦA MENU VÀO ĐÂY 🔥 */
-.menu {
-    background-color: #E6F2FF;
-    padding: 10px;
-    text-align: center;
-    /* Thêm một đường kẻ nhỏ để phân tách rõ ràng hơn */
-    border-bottom: 1px solid #0055A5; 
-}
-.menu a {
-    text-decoration: none;
-    color: #0055A5;
-    margin: 0 15px;
-    font-weight: 600;
-}
-.menu a:hover {
-    color: #FFB400;
-}
-
-/* Kiểu cho mỗi mục trong thanh bên */
-.sidebar-item {
-    text-align: center;
-    cursor: pointer;
-    margin: 10px auto; /* căn giữa và tạo khoảng cách */
-    padding: 20px 10px;
-    border-radius: 8px;
-    transition: background-color 0.3s, color 0.3s;
-    color: #4B4B4B; /* Màu chữ mặc định hơi xám */
-    font-size: 18px;
-    font-weight: 500;
-}
-
-.sidebar-item:hover {
-    background-color: #f0f2f6; /* Hover nhẹ nhàng */
-    color: #262730; /* Màu chữ đậm hơn khi hover */
-}
-
-/* Biểu tượng (Icon) */
-.sidebar-item .icon {
-    display: block;
-    font-size: 30px;
-    margin-bottom: 5px;
-    /* Căn chỉnh icon và chữ để mô phỏng ảnh bạn gửi */
-    color: inherit; 
-}
-
-/* Custom CSS cho st.button để mô phỏng click và active */
-/* Tùy chỉnh button để căn giữa và tạo hiệu ứng Active */
-div.stButton > button {
-    width: 100%;
-    text-align: center;
-    border: none;
-    background-color: transparent !important;
-    color: #4B4B4B;
-    font-size: 18px;
-    font-weight: 500;
-    padding: 20px 10px;
-}
-
-div.stButton > button:hover {
-    background-color: #f0f2f6 !important;
-    color: #262730 !important;
-}
-
-/* Class active được thêm vào thông qua HTML/Markdown để đánh dấu mục đang chọn */
-.sidebar-active-btn button {
-    background-color: #ffffff !important; /* Nền trắng khi Active */
-    color: #B71C1C !important; /* Màu chữ đỏ đậm khi Active */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Thêm box shadow để nổi bật */
-}
-
-/* Điều chỉnh lại khoảng cách và bố cục của st.button trong sidebar */
-[data-testid="stSidebar"] div.stButton {
-    margin-top: 5px;
-}
-#notif-container {
-    display: inline-block;
+/* Ẩn khoảng cách mặc định của Streamlit Columns để Header liền mạch hơn */
+[data-testid="stVerticalBlock"] > [style*="flex-direction: column;"] > [data-testid="stVerticalBlock"] {
+    gap: 0rem;
 }
 </style>
 """
 
-# Dictionary để ánh xạ tên trang sang Biểu tượng (Icon)
-PAGES = {
-    # "Trang chủ": "🏠",
-    # "Tin tức": "📰",
-    # "Tổ chức": "🏢",
-    # "Cài đặt": "⚙️"
-}
 
-unread = sum(n["read"] == False for n in st.session_state.citizen_notifications)
-
+# unread = sum(n["read"] == False for n in st.session_state.citizen_notifications)
+unread = notification_bell()
 # 🧭 1. Thanh tiêu đề (Header) - Đã tối giản
 def header(username):
-    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)  # Áp dụng CSS
-    st.markdown(
-        f"""
-        <div class="header">
-            <div class="header-left">
-                <img src="https://play-lh.googleusercontent.com/k2J4mfmUj040c4dKuVwAg4CwR_4k_RRTO_Zb3a8dMGRynKTaUjek3P_i_MKjmFPG87uK=w480-h960-rw">
-                <div>
-                    <div style="font-weight:bold; font-size:18px;">BỘ CÔNG AN</div>
-                    <div style="font-size:14px;">TRUNG TÂM DỮ LIỆU QUỐC GIA VỀ DÂN CƯ</div>
+    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
+    # --- TẠO KHUNG HEADER MÀU ĐỎ ---
+    # Mẹo: Dùng st.container và CSS background cho nó là khó trong Streamlit.
+    # Cách tốt nhất để giữ layout: Dùng 1 container có background màu đỏ bao quanh các cột.
+
+    header_container = st.container()
+
+    # Inject CSS để container này có màu đỏ (Fake header background)
+    st.markdown("""
+    <style>
+        div[data-testid="stVerticalBlock"] > div:has(div.header-left-content) {
+            background-color: #B71C1C;
+            padding-right: 20px;
+            border-bottom: 4px solid #FFD54F;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    with header_container:
+        # Chia cột: [Logo & Tên (70%)] - [Nút Chuông (10%)] - [User Info (20%)]
+        c1, c2, c3 = st.columns([7, 1, 2], gap="small")
+
+        with c1:
+            # Phần HTML bên trái (Logo + Text)
+            # Thêm class header-left-content để CSS nhận diện vùng này
+            st.markdown(
+                f"""
+                <div class="header-left header-left-content" style="padding: 10px;">
+                    <img src="https://play-lh.googleusercontent.com/k2J4mfmUj040c4dKuVwAg4CwR_4k_RRTO_Zb3a8dMGRynKTaUjek3P_i_MKjmFPG87uK=w480-h960-rw">
+                    <div>
+                        <div style="font-weight:bold; font-size:18px; color: white;">BỘ CÔNG AN</div>
+                        <div style="font-size:14px; color: white;">TRUNG TÂM DỮ LIỆU QUỐC GIA VỀ DÂN CƯ</div>
+                    </div>
                 </div>
-            </div>
-            <div class="header-right">
-                <a href="/Citizen_Notifications" style="color:white; text-decoration:none; font-size:18px;">
-                    🔔 <span style="font-weight:bold;">({unread})</span>
-                </a>
-                <span>{username}</span>
-                <div class="avatar">👤</div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+                """,
+                unsafe_allow_html=True,
+            )
+
+        with c2:
+            # --- ĐÂY LÀ NÚT PYTHON DÙNG ST.SWITCH_PAGE ---
+            # Dùng key custom_css_class (nếu dùng streamlit mới) hoặc div wrapper
+            st.markdown('<div class="bell-btn">', unsafe_allow_html=True)
+            if st.button(f"🔔 ({unread})", key="btn_notify"):
+                st.switch_page("pages/Citizen_Notifications.py")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with c3:
+            # Phần HTML bên phải (User + Avatar)
+            st.markdown(
+                f"""
+                <div class="header-right-user" style="height: 100%; padding-top: 10px;">
+                    <span>{username}</span>
+                    <div class="avatar">👤</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
     col_nav, col_login = st.columns([9, 1])
 
     # --- CÁC NÚT ĐIỀU HƯỚNG ---
@@ -258,70 +232,70 @@ def header(username):
             logout()
         # st.markdown('</div>', unsafe_allow_html=True)
 # 📂 2. Thanh điều hướng bên trái (Sidebar) - Đã tùy chỉnh giao diện
-def sidebar():
-    # Khởi tạo trạng thái trang nếu chưa có
-    if "page" not in st.session_state:
-        st.session_state["page"] = "Trang chủ"
-
-    # st.sidebar.markdown(f'<div style="text-align:center; font-weight:bold; font-size:24px; color:#B71C1C;">MENU</div>',
-    #                     unsafe_allow_html=True)
-
-    # Lặp qua các trang và tạo nút tùy chỉnh
-    for page_name, icon in PAGES.items():
-        is_active = st.session_state["page"] == page_name
-
-        # Tạo HTML để mô phỏng bố cục Icon trên, chữ dưới
-        # Lưu ý: Vì Streamlit st.button chỉ hỗ trợ markdown inline, ta phải sử dụng một trick CSS.
-
-        # Thêm class 'sidebar-active-btn' nếu là trang đang chọn
-        active_class = "sidebar-active-btn" if is_active else ""
-
-        # Bố cục nút
-        button_html = f"""
-        <div class='sidebar-item {active_class}'>
-            <span class='icon'>{icon}</span>
-            <div style='line-height:1.2;'>{page_name}</div>
-        </div>
-        """
-
-        # Streamlit không cho phép bắt click trực tiếp trên markdown.
-        # Ta sẽ dùng st.button để bắt click và áp dụng CSS tùy chỉnh.
-
-        button_clicked = st.sidebar.button(
-            label=f"{icon} {page_name}",
-            key=f"nav_{page_name}",
-            use_container_width=True
-        )
-
-        # Vì st.button không hoàn toàn căn giữa được icon/text như ảnh,
-        # giải pháp tốt nhất là thay thế bằng HTML button hoàn toàn.
-        # Tuy nhiên, ta sẽ dùng st.markdown với <a> tag và query params để bắt click
-
-        # *********** Thay thế st.sidebar.button bằng st.sidebar.markdown (Tùy chọn tốt hơn) ***********
-        # Để đảm bảo giao diện chính xác, ta dùng link và bắt trạng thái (cần rerunning)
-        st.sidebar.markdown(
-            f"""
-            <a href="?page={page_name}" style="text-decoration:none;">
-                <div class='sidebar-item {'sidebar-active-btn' if st.session_state["page"] == page_name else ''}'>
-                    <span class='icon'>{icon}</span>
-                    {page_name}
-                </div>
-            </a>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # Xử lý click (Nếu bạn muốn dùng st.button để tránh rerunning quá nhiều)
-        if button_clicked:
-            st.session_state["page"] = page_name
-            st.rerun()  # Bắt buộc phải rerun để thay đổi nội dung
-
-    # Kiểm tra query parameter để cập nhật trạng thái nếu người dùng click vào <a> tag
-    query_params = st.query_params
-    if "page" in query_params and query_params["page"][0] in PAGES:
-        st.session_state["page"] = query_params["page"][0]
-
-    return st.session_state["page"]
+# def sidebar():
+#     # Khởi tạo trạng thái trang nếu chưa có
+#     if "page" not in st.session_state:
+#         st.session_state["page"] = "Trang chủ"
+#
+#     # st.sidebar.markdown(f'<div style="text-align:center; font-weight:bold; font-size:24px; color:#B71C1C;">MENU</div>',
+#     #                     unsafe_allow_html=True)
+#
+#     # Lặp qua các trang và tạo nút tùy chỉnh
+#     for page_name, icon in PAGES.items():
+#         is_active = st.session_state["page"] == page_name
+#
+#         # Tạo HTML để mô phỏng bố cục Icon trên, chữ dưới
+#         # Lưu ý: Vì Streamlit st.button chỉ hỗ trợ markdown inline, ta phải sử dụng một trick CSS.
+#
+#         # Thêm class 'sidebar-active-btn' nếu là trang đang chọn
+#         active_class = "sidebar-active-btn" if is_active else ""
+#
+#         # Bố cục nút
+#         button_html = f"""
+#         <div class='sidebar-item {active_class}'>
+#             <span class='icon'>{icon}</span>
+#             <div style='line-height:1.2;'>{page_name}</div>
+#         </div>
+#         """
+#
+#         # Streamlit không cho phép bắt click trực tiếp trên markdown.
+#         # Ta sẽ dùng st.button để bắt click và áp dụng CSS tùy chỉnh.
+#
+#         button_clicked = st.sidebar.button(
+#             label=f"{icon} {page_name}",
+#             key=f"nav_{page_name}",
+#             use_container_width=True
+#         )
+#
+#         # Vì st.button không hoàn toàn căn giữa được icon/text như ảnh,
+#         # giải pháp tốt nhất là thay thế bằng HTML button hoàn toàn.
+#         # Tuy nhiên, ta sẽ dùng st.markdown với <a> tag và query params để bắt click
+#
+#         # *********** Thay thế st.sidebar.button bằng st.sidebar.markdown (Tùy chọn tốt hơn) ***********
+#         # Để đảm bảo giao diện chính xác, ta dùng link và bắt trạng thái (cần rerunning)
+#         st.sidebar.markdown(
+#             f"""
+#             <a href="?page={page_name}" style="text-decoration:none;">
+#                 <div class='sidebar-item {'sidebar-active-btn' if st.session_state["page"] == page_name else ''}'>
+#                     <span class='icon'>{icon}</span>
+#                     {page_name}
+#                 </div>
+#             </a>
+#             """,
+#             unsafe_allow_html=True
+#         )
+#
+#         # Xử lý click (Nếu bạn muốn dùng st.button để tránh rerunning quá nhiều)
+#         if button_clicked:
+#             st.session_state["page"] = page_name
+#             st.rerun()  # Bắt buộc phải rerun để thay đổi nội dung
+#
+#     # Kiểm tra query parameter để cập nhật trạng thái nếu người dùng click vào <a> tag
+#     query_params = st.query_params
+#     if "page" in query_params and query_params["page"][0] in PAGES:
+#         st.session_state["page"] = query_params["page"][0]
+#
+#     return st.session_state["page"]
 
 
 # 💬 3. Nội dung chính
@@ -434,7 +408,7 @@ def app():
     full_name = user.get("full_name", "Người dùng")
 
     # Hiển thị Thanh bên (Sidebar)
-    page = sidebar()
+    page = "Trang chủ"
 
     # Hiển thị Header
     header(full_name)

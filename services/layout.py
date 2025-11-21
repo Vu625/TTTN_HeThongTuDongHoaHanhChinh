@@ -1,6 +1,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 from services.auth_service import logout
+from services.data_viz_service import load_applications
 import os
 def load_common_layout():
     """Hiển thị layout (sidebar) chung cho tất cả các trang."""
@@ -86,30 +87,37 @@ def init_notification_state():
         st.session_state.citizen_notifications = []
 
 def notification_bell():
-    unread = sum(1 for n in st.session_state.citizen_notifications if not n["read"])
+    # unread = sum(1 for n in st.session_state.citizen_notifications if not n["read"])
+    user_id = st.session_state["user_id"]
+    apps = load_applications()
 
-    components.html(
-        f"""
-        <div style="position: relative; display: inline-block; cursor:pointer;"
-             onclick="window.location.href='?page=🔔+Thông+báo'">
-            <span style="font-size: 22px;">🔔</span>
-
-            {f'''
-            <span style="
-                position: absolute;
-                top: -5px;
-                right: -5px;
-                background: red;
-                color: white;
-                padding: 2px 6px;
-                border-radius: 50%;
-                font-size: 10px;
-            ">{unread}</span>
-            ''' if unread > 0 else ""}
-        </div>
-        """,
-        height=40,
-    )
+    unread = sum(1 for a in apps
+                 if a.get("notification")
+                 and a["notification"].get("seen") == False
+                 and a["citizen_id"] == user_id)
+    return unread
+    # components.html(
+    #     f"""
+    #     <div style="position: relative; display: inline-block; cursor:pointer;"
+    #          onclick="window.location.href='?page=🔔+Thông+báo'">
+    #         <span style="font-size: 22px;">🔔</span>
+    #
+    #         {f'''
+    #         <span style="
+    #             position: absolute;
+    #             top: -5px;
+    #             right: -5px;
+    #             background: red;
+    #             color: white;
+    #             padding: 2px 6px;
+    #             border-radius: 50%;
+    #             font-size: 10px;
+    #         ">{unread}</span>
+    #         ''' if unread > 0 else ""}
+    #     </div>
+    #     """,
+    #     height=40,
+    # )
 
 current_file_name = os.path.basename(__file__)
 # Hàm kiểm tra và chuyển trang
