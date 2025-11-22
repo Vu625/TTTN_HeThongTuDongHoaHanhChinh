@@ -10,6 +10,7 @@ from collections import Counter
 import math
 from scipy.sparse import csr_matrix, save_npz, load_npz
 from scipy.sparse.linalg import norm as sparse_norm
+import glob
 import pickle
 BASE_DIR = Path(__file__).resolve().parent.parent   # nhảy ra khỏi services/
 LAW_DIR = BASE_DIR / "data/db/law_texts"
@@ -319,4 +320,57 @@ def prepare(file_name):
     name = file_name.split('.')[0]
     save_index(vectorizer, tfidf_matrix, chunks, name)
 
-prepare("NghiDinhThue.txt")
+# prepare("NghiDinhThue.txt")
+
+
+def bulk_prepare_and_index(directory_path, index_prefix="law_engine_full"):
+    all_chunks = []
+    stop_words = ["là", "thì", "của"]
+    directory_path = BASE_DIR / directory_path
+    # 1. Lặp qua tất cả các file .txt trong thư mục
+    search_pattern = os.path.join(directory_path, "*.txt")
+    file_paths = glob.glob(search_pattern)
+    if not file_paths:
+        print(f"❌ Không tìm thấy file .txt nào trong thư mục: {directory_path}")
+        return
+
+    print(f"✅ Bắt đầu xử lý {len(file_paths)} file luật...")
+
+    for file_path in file_paths:
+        file_name = os.path.basename(file_path)
+        try:
+            # Sử dụng hàm chunking đã có
+            text = read_txt(file_path)
+            chunks = split_into_chunks(text)
+            # chunks = load_and_chunk_law_data(file_path)
+
+            # Cập nhật metadata: Thêm tên file gốc để truy vết
+            # Điều này rất quan trọng để biết chunk đó đến từ Luật nào
+            for chunk in chunks:
+                chunk['metadata']['source_file'] = file_name
+
+            all_chunks.extend(chunks)
+            print(f"   -> Đã chunk {len(chunks)} đoạn từ file: {file_name}")
+
+        except Exception as e:
+            print(f"   -> ⚠️ Lỗi khi xử lý file {file_name}: {e}")
+
+    print(f"Tổng số chunks đã thu thập: {len(all_chunks)}")
+
+    if not all_chunks:
+        return
+
+    # 2. Vector Hóa Toàn bộ Tập Dữ liệu (Dòng này gom tất cả kiến thức)
+    raw_texts = [chunk['content'] for chunk in all_chunks]
+
+    vectorizer = CustomTfidfVectorizer(stop_words=set(stop_words) if stop_words else None).fit(raw_texts)
+    tfidf_matrix = vectorizer.transform(raw_texts)
+
+    print(f"✅ Ma trận TF-IDF đã tạo với kích thước: {tfidf_matrix.shape}")
+
+    # 3. Lưu trữ Index
+    save_index(vectorizer, tfidf_matrix, all_chunks, index_prefix=index_prefix)
+
+    print(f"🎉 Hoàn tất Indexing. Đã lưu 3 file index với prefix: {index_prefix}")
+# word_stop = ["là","thì","của"]
+# bulk_prepare_and_index(BASE_DIR / "data/db/law_texts", stop_words=word_stop)

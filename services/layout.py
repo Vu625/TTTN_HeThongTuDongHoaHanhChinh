@@ -51,7 +51,7 @@ def display_back_button():
         label = "⬅️ Quay lại Trang Chủ Công Dân"
     elif role == "admin":
         # Giả sử admin muốn quay về Dashboard
-        home_page_path = "pages/Admin_Dashboard.py"
+        home_page_path = "pages/Admin_Home.py"
         label = "⬅️ Quay lại Bảng Điều Khiển Admin"
     elif role == "officer":
         home_page_path = "pages/Officer_Home.py"

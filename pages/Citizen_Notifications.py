@@ -47,6 +47,7 @@ from services.layout import display_back_button
 check_role("citizen")
 display_back_button()
 st.title("🔔 Thông báo hồ sơ")
+st.divider()
 
 apps = load_applications()
 user_id = st.session_state["user_id"]
@@ -138,8 +139,7 @@ for app in user_apps:
         with c2:
             # Căn chỉnh nút bấm cho đẹp
             st.write("")  # Hack nhỏ để đẩy nút xuống giữa dòng nếu cần
-            btn_label = "Chưa Xem!" if not seen else "Xem lại"
-
+            btn_label = "🔔 Chưa Xem!" if not seen else "Xem lại"
             # Logic nút bấm
             if st.button(btn_label, key=f"view_{app['application_id']}", use_container_width=True):
                 # Toggle trạng thái xem chi tiết
