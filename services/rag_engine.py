@@ -191,17 +191,6 @@ class CustomTfidfVectorizer:
         tfidf_matrix = tfidf_matrix.multiply(1 / norms)
         return tfidf_matrix
 
-# ===============================
-# Save/Load Index
-# ===============================
-# def save_index(vectorizer, tfidf_matrix, chunks, index_prefix):
-#     with open(Path_Vecto / f"{index_prefix}_vectorizer.pkl", "wb") as f:
-#         pickle.dump(vectorizer, f)
-#     save_npz(Path_Vecto / f"{index_prefix}_matrix.npz", tfidf_matrix)
-#     with open(Path_Vecto / f"{index_prefix}_chunks.pkl", 'wb') as f:
-#         pickle.dump(chunks, f)
-#     print("✅ Đã lưu trữ Index thành công!")
-
 from pathlib import Path
 import pickle
 from scipy.sparse import save_npz
@@ -237,13 +226,6 @@ def save_index(vectorizer, tfidf_matrix, chunks, index_prefix):
 
     print("✅ Lưu thành công:", index_prefix)
 
-# def load_index(index_prefix):
-#     with open(Path_Vecto / f"{index_prefix}_vectorizer.pkl", 'rb') as f:
-#         vectorizer = pickle.load(f)
-#     tfidf_matrix = load_npz(Path_Vecto / f"{index_prefix}_matrix.npz")
-#     with open(Path_Vecto / f"{index_prefix}_chunks.pkl", 'rb') as f:
-#         chunks = pickle.load(f)
-#     return vectorizer, tfidf_matrix, chunks
 
 def load_index(index_prefix):
 

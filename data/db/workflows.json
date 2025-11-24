@@ -21,7 +21,7 @@
   },
   {
     "workflow_id": "W102",
-    "workflow_name": "Quy trình Kiểm tra/Duyệt Cơ bản",
+    "workflow_name": "Quy trình Kiểm tra/Duyệt CCCD",
     "steps": [
       {"step_id": "S10",
         "action": "basic_check",
@@ -29,6 +29,26 @@
         "title": "Tiếp nhận hồ sơ"},
       {"step_id": "S11",
         "action": "extract_text",
+        "role": "officer",
+        "title": "Xác minh thông tin & OCR",
+        "next_step": "FINISH"},
+      {"step_id": "S11",
+        "action": "approve_result",
+        "role": "officer",
+        "title": "Phê duyệt kết quả",
+        "next_step": "FINISH"}
+    ]
+  },
+  {
+    "workflow_id": "W103",
+    "workflow_name": "Quy trình Kiểm tra/Duyệt GPLX",
+    "steps": [
+      {"step_id": "S10",
+        "action": "basic_check",
+        "role": "officer",
+        "title": "Tiếp nhận hồ sơ"},
+      {"step_id": "S11",
+        "action": "extract_text_gplx",
         "role": "officer",
         "title": "Xác minh thông tin & OCR",
         "next_step": "FINISH"},

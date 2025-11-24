@@ -94,7 +94,7 @@ def ask_lmstudio(query):
     print(f"\n🧠 Câu hỏi: {query}\n")
 
     # 1. Load index đã tạo
-    vectorizer, tfidf_matrix, loaded_chunks = load_index("NghiDinhThue")
+    vectorizer, tfidf_matrix, loaded_chunks = load_index("law_engine_full")
 
     # 2. Trích xuất top K chunk dựa trên tìm kiếm cosine + boosting
     retrieved_chunks = vector_search_boosted(

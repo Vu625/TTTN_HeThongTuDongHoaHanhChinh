@@ -41,13 +41,17 @@ if selection:
         for field in form["required_doc"]:
             req_doc += field + ", "
 
-        st.write(f"📌 Tải tài liệu bắt buộc:{req_doc}")
+        st.write(f"📌 Tải các tài liệu bắt buộc (Ưu Tiên Hình Ảnh và File PDF) :{req_doc}")
         uploaded_files = st.file_uploader("Chọn file", accept_multiple_files=True)
 
         st.write("📝 Điền thông tin:")
-        form_data = {}
+        # form_data = {}
+        # for field in form["required_fields"]:
+        #     form_data[field["name"]] = st.text_input(field["label"])
+        form_data = []
         for field in form["required_fields"]:
-            form_data[field["name"]] = st.text_input(field["label"])
+            data= {'name':field['name'],'label':field['label'],'content':st.text_input(field["label"])}
+            form_data.append(data)
 
         if st.button("Gửi hồ sơ"):
             apps = load_applications()

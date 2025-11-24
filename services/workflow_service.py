@@ -5,7 +5,7 @@ def get_application_status():
 #logic gán cán bộ.
 
 import streamlit as st
-from services.ocr_service import extract_text, ocr_cccd
+from services.ocr_service import extract_text, ocr_cccd , ocr_gplx
 from pathlib import Path
 import datetime
 from services.data_viz_service import save_applications
@@ -16,17 +16,56 @@ import streamlit as st
 
 
 def basic_check(app):
-    st.subheader("📝 Kiểm tra thông tin hồ sơ (Basic Check)")
-
-    st.markdown("### 📌 Thông tin công dân đã điền:")
-    st.json(app.get("form_data", {}))
-
+    st.subheader("📑 Kiểm tra thông tin hồ sơ (Basic Check)")
     st.divider()
-    st.markdown("### 📎 Tài liệu đính kèm:")
-    for doc in app.get("documents", []):
-        st.write(f"• {doc}")
-        st.image(str(doc), width=350)
 
+    st.markdown("### 📎 Tài liệu đính kèm:")
+    # for doc in app.get("documents", []):
+    #     st.write(f"• {doc}")
+    #     st.image(str(doc), width=350)
+    # st.divider()
+
+    docs = app.get("documents", [])
+
+    if not docs:
+        st.info("Không có tài liệu đính kèm.")
+    else:
+        for doc_path in docs:
+            p = Path(doc_path)
+            st.write(f"📄 **{p.name}**")
+
+            if not p.exists():
+                st.error(f"⚠️ File không tồn tại: {doc_path}")
+                continue
+
+            # Hiển thị ảnh
+            if p.suffix.lower() in [".png", ".jpg", ".jpeg"]:
+                st.image(str(p), caption=p.name, width=350)
+
+            # Hiển thị PDF
+            elif p.suffix.lower() == ".pdf":
+                st.markdown("#### 📑 Xem file PDF:")
+                try:
+                    st.pdf(str(p))  # Streamlit >= 1.32
+                except:
+                    # fallback nếu phiên bản st.pdf() không khả dụng
+                    st.markdown(
+                        f"""
+                            <iframe src="{str(p)}" width="100%" height="600px">
+                            </iframe>
+                            """,
+                        unsafe_allow_html=True
+                    )
+
+            else:
+                st.info(f"Không thể xem trực tiếp file: {p.suffix}")
+
+            st.divider()
+
+    st.markdown("### 📌 Các thông tin công dân đã điền:")
+    for item in app['form_data']:
+        st.markdown(f"##### 📝 {item['label']}")
+        st.warning(item['content'])
     st.divider()
 
     # ==============================
@@ -34,7 +73,6 @@ def basic_check(app):
     # ==============================
     if "reject_mode" not in st.session_state:
         st.session_state.reject_mode = False
-    # st.session_state.reject_mode = False
     if "reject_reason_selected" not in st.session_state:
         st.session_state.reject_reason_selected = None
     if "reject_other_text" not in st.session_state:
@@ -55,7 +93,6 @@ def basic_check(app):
         if approve:
             app["basic_check_result"] = "approved"
             st.success("Đã duyệt! Bạn có thể chuyển sang bước tiếp theo.")
-            # st.session_state.reject_mode = False
             return app
 
         if reject:
@@ -104,10 +141,6 @@ def basic_check(app):
             del st.session_state.reject_mode
 
         return app
-    #
-    # # NÚT XONG
-    # if st.button("Xong"):
-    #     st.success("Hoàn tất. Công dân sẽ nhận thông báo.")
 
     return app
 
@@ -115,7 +148,7 @@ def receive_application(app):
     st.info("📥 Hồ sơ đã được tiếp nhận. Không có hành động tự động.")
     return app
 
-def extract_text_action(app):
+def extract_text_action_CCCD(app):
     st.subheader("🔍 OCR - Trích xuất thông tin từ ảnh")
     if "documents" not in app or not app["documents"]:
         st.warning("Không có file để chạy OCR.")
@@ -130,28 +163,13 @@ def extract_text_action(app):
             st.error(f"Không tìm thấy file: {path}")
             continue
 
-        # st.image(str(path), caption=path.name, width=350)
-        # if st.button(f"Chạy OCR cho {path.name}", key=path.name):
-        #     text = ocr_cccd(path)
-        #     st.success(f"✅ Đã trích xuất nội dung từ {path.name}")
-        #     st.text_area(f"Nội dung OCR ({path.name})", text["data"] , height=150)
-        #     text_fix={}
-        #     for field in text["data"]:
-        #         text_fix[field["name"]] = st.text_input(label=field["label"], value=field["text"],key=field["name"])
-        #         text_fix[field["name"]] = st.session_state[field["name"]]
-        #     if st.button("Lưu Nội Dung Quét OCR"):
-        #         app["ocr_texts"] = text_fix
-        #     if text["has_title"]:
-        #         st.success("Căn Cước Công Dân" )
-        #     else:
-        #         st.error("Không Phải CCCD")
         st.image(str(path), caption=path.name, width=350)
         if 'ocr_data_raw' not in st.session_state:
             st.session_state.ocr_data_raw = None
         if 'ocr_key' not in st.session_state:
             st.session_state.ocr_key = None
             # Logic KÍCH HOẠT OCR (Chỉ lưu kết quả vào state)
-        if st.button(f"Chạy OCR cho {path.name}", key=path.name):
+        if st.button(f"Lấy thông tin bằng OCR cho {path.name}", key=path.name):
             text = ocr_cccd(path)
             st.session_state.ocr_data_raw = text["data"]  # Lưu kết quả OCR vào state
             st.session_state.ocr_key = path.name  # Lưu key file đang được OCR
@@ -192,10 +210,6 @@ def extract_text_action(app):
             # ...
     return app
 
-# def approve_result(app):
-#     st.success("✅ Hồ sơ đã được phê duyệt!")
-#     app["status"] = "approved"
-#     return app
 def approve_result(app):
     st.subheader("🎉 Phê duyệt kết quả hồ sơ")
 
@@ -222,9 +236,72 @@ def approve_result(app):
 
     return app
 
+def extract_text_action_GPLX(app):
+    st.subheader("🔍 OCR - Trích xuất thông tin từ ảnh")
+    if "documents" not in app or not app["documents"]:
+        st.warning("Không có file để chạy OCR.")
+        return app
+
+    if "ocr_texts" not in app:
+        app["ocr_texts"] = {}
+
+    for doc_path in app["documents"]:
+        path = Path(doc_path)
+        if not path.exists():
+            st.error(f"Không tìm thấy file: {path}")
+            continue
+
+        st.image(str(path), caption=path.name, width=350)
+        if 'ocr_data_raw' not in st.session_state:
+            st.session_state.ocr_data_raw = None
+        if 'ocr_key' not in st.session_state:
+            st.session_state.ocr_key = None
+            # Logic KÍCH HOẠT OCR (Chỉ lưu kết quả vào state)
+        if st.button(f"Chạy OCR cho {path.name}", key=path.name):
+            text = ocr_gplx(path)
+            st.session_state.ocr_data_raw = text["data"]  # Lưu kết quả OCR vào state
+            st.session_state.ocr_key = path.name  # Lưu key file đang được OCR
+            st.success(f"✅ Đã trích xuất nội dung từ {path.name}")
+
+        # Logic HIỂN THỊ INPUT (Luôn chạy, chỉ kiểm tra state)
+        # Chỉ hiển thị các ô input nếu có dữ liệu OCR cho file hiện tại
+        if st.session_state.ocr_data_raw and st.session_state.ocr_key == path.name:
+
+            # 1. Hiển thị Text Area (Tùy chọn)
+            # st.text_area(f"Nội dung OCR ({path.name})", str(st.session_state.ocr_data_raw), height=150)
+
+            # 2. Tạo các ô Input Sửa lỗi (Luôn render khi có dữ liệu)
+            st.markdown("---")
+            st.subheader("📝 Sửa lỗi Trích xuất")
+
+            text_fix = {}
+            for field in st.session_state.ocr_data_raw:
+                # Tạo key duy nhất cho ô input
+                input_key = f"input_{st.session_state.ocr_key}_{field['name']}"
+
+                # st.text_input được gọi. Streamlit tự động duy trì giá trị qua session_state[input_key]
+                st.text_input(
+                    label=field["label"],
+                    value=field["text"],
+                    key=input_key  # Key duy nhất bắt buộc
+                )
+
+                # Lấy giá trị hiện tại (đã sửa hoặc gốc)
+                text_fix[field["name"]] = st.session_state[input_key]
+
+            # 3. Nút Lưu (Áp dụng các giá trị đã sửa)
+            if st.button("Lưu Nội Dung Quét OCR", key=f"save_btn_{path.name}"):
+                app["ocr_texts"][path.name] = text_fix
+                st.success(f"💾 Đã lưu nội dung đã sửa cho {path.name}")
+
+            # Xóa trạng thái nếu cần chuyển sang file khác
+            # ...
+    return app
+
 # ========== Bộ ánh xạ hàm ==========
 ACTIONS = {
     "basic_check": basic_check,
-    "extract_text": extract_text_action,
+    "extract_text_cccd": extract_text_action_CCCD,
+    "extract_text_gplx": extract_text_action_GPLX,
     "approve_result": approve_result,
 }

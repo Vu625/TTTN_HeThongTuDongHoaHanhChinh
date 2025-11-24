@@ -1,4 +1,16 @@
 [
+    {
+    "form_template_id": "T000",
+    "name_vn": "Thủ tục Xác Nhận Giấy Phép Lái Xe",
+    "description": "Thủ tục hành chính Xác Nhận Giấy Phép Lái Xe.",
+    "required_doc": ["Ảnh Giấy Phép Lái Xe","Giấy xác nhận"],
+    "required_fields": [
+            {"name": "So_GPLX", "label": "Số GPLX", "type": "text"},
+            {"name": "Ho_va_ten", "label": "Họ và tên", "type": "text"},
+            {"name": "Ly_Do", "label": "Lý Do Làm Xác Nhận", "type": "text"}
+      ],
+    "linked_workflow_id": "W103"
+  },
   {
     "form_template_id": "T001",
     "name_vn": "Thủ tục Cấp lại Thẻ Căn cước Công dân",

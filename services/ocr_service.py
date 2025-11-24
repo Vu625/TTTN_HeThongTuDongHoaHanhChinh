@@ -334,7 +334,6 @@ def ocr_cccd(image_path):
     return {
         "data": data_ocr,
         "has_title": has_title,
-
     }
 
 OCR_AVAILABLE = True
@@ -417,4 +416,200 @@ def read_text_from_pdf(pdf_path: str) -> Dict[str, any]:
 # a = ocr_cccd("data\\db\\uploads\\GPLX_mattruoc.jpg")
 #
 # print(a)
+def ocr_gplx(img_path):
+    # Bước 1: Yêu cầu đường dẫn file ảnh cục bộ
+    # print("📸 Vui lòng nhập đường dẫn tới ảnh Giấy phép lái xe cục bộ (ví dụ: C:\\Users\\...\\gplx.jpg):")
+    # img_path = input("Đường dẫn file: ").strip()
+
+    # Kiểm tra tính hợp lệ của đường dẫn file
+    if not img_path or not os.path.exists(img_path):
+        print(f"❌ Đường dẫn file không hợp lệ hoặc file không tồn tại: {img_path}")
+        return None
+
+    # Bước 2: Đọc ảnh
+    try:
+        image = Image.open(img_path)
+    except Exception as e:
+        print(f"❌ Lỗi khi mở ảnh: {e}")
+        return None
+
+    # OCR 1: Grayscale để lấy chính xác "GIẤY PHÉP LÁI XE"
+    img_gray = image.convert("L")
+    text_gray = pytesseract.image_to_string(img_gray, lang='vie')
+    print("\n--- OCR Grayscale (cho title) ---")
+    print(text_gray)
+
+    # OCR 2: Ảnh gốc để lấy thông tin chi tiết chính xác
+    text_original = pytesseract.image_to_string(image, lang='vie')
+    print("\n--- OCR Original (cho data) ---")
+    print(text_original)
+
+    # Bước 3: Kiểm tra title từ OCR grayscale
+    target_title_regex = r'GIẤY PHÉP LÃIXE'
+    title_match = re.search(target_title_regex, text_gray, re.IGNORECASE)
+    has_title_found = bool(title_match)
+    print(f"\nCó 'GIẤY PHÉP LÁI XE': {'✅ Đúng' if has_title_found else '❌ Sai'}")
+
+    # Bước 4: Tách thông tin (line-based parsing, an toàn hơn)
+    data = {}
+    text_combined = (text_original + "\n" + text_gray).strip()
+    # Chuẩn hóa một chút: thay các ký tự lạ thường thấy
+    normalized = text_combined.replace('Ð', 'Đ').replace('ð', 'đ').replace('', '')
+    # Tách thành dòng, loại bỏ các dòng chỉ có ký tự lạ whitespace
+    lines = [ln.strip() for ln in normalized.splitlines() if ln.strip()]
+
+    # Helper: tìm giá trị sau label trong cùng dòng hoặc dòng kế tiếp
+    def find_field(label_patterns):
+        """
+        label_patterns: list of regex patterns (case-insensitive) để nhận diện label trong 1 dòng
+        Trả về giá trị (chuỗi) hoặc None.
+        """
+        for i, ln in enumerate(lines):
+            for pat in label_patterns:
+                if re.search(pat, ln, re.IGNORECASE):
+                    # nếu có dấu ":" hoặc "No:" hoặc "/" thì tách phần sau
+                    # tìm vị trí của ':' đầu tiên trong dòng
+                    if ':' in ln:
+                        after = ln.split(':', 1)[1].strip()
+                        if after:
+                            return after
+                    # nếu không có ":" hoặc phần sau rỗng -> lấy dòng kế tiếp không rỗng
+                    j = i + 1
+                    while j < len(lines) and lines[j].strip() == '':
+                        j += 1
+                    if j < len(lines):
+                        return lines[j].strip()
+        return None
+
+    # ===== Số GPLX (12 chữ số) =====
+    # Tìm mẫu Số/No/So: 123456789012 (10+ chữ số)
+    m = re.search(r'(?:số|só|so|sô|no)[/:\s]*([^\s]*\d{10,}\b)', normalized, re.IGNORECASE)
+    if not m:
+        # Tìm mẫu 12 chữ số đơn thuần
+        m = re.search(r'(\d{12})', normalized)
+
+    # Tiền xử lý để đảm bảo lấy đúng 12 chữ số
+    digits = ''
+    if m:
+        digits = re.sub(r'\D', '', m.group(1))  # Chỉ giữ lại chữ số
+        if len(digits) >= 12:
+            data['So_GPLX'] = digits[:12]
+        else:
+            # Thử tìm lại 12 chữ số không cần prefix nếu mẫu đầu tiên bị lỗi (ví dụ OCR bỏ lỡ prefix)
+            m_12 = re.search(r'(\d{12})', normalized)
+            if m_12:
+                data['So_GPLX'] = m_12.group(1)
+
+    # ===== Họ và tên =====
+    name_val = find_field([r'Họ\s*tên', r'Họ\s*và\s*tên', r'Full\s*name', r'Name'])
+    if name_val:
+        # loại bỏ nhãn tiếng Anh nếu dính
+        name_val = re.sub(r'^(Full\s*name[:\s\-]*)', '', name_val, flags=re.IGNORECASE).strip()
+        # nếu name_val chứa từ "Ngày" hoặc "Ngày sinh" thì tách bỏ phần đó (ngăn OCR nối nhãn)
+        name_val = re.split(r'\bNgày\b|\bDate\b', name_val, flags=re.IGNORECASE)[0].strip()
+        data['Ho_va_ten'] = name_val
+
+    # ===== Ngày sinh (dd/mm/yyyy) =====
+    birth_val = find_field([r'Ngày\s*sinh', r'Date\s*of\s*Birth', r'Date\s*of\s*Binh', r'DOB'])
+    date_found = False
+
+    if birth_val:
+        # tìm dd/mm/yyyy trong birth_val
+        m = re.search(r'([0-3]?\d[/\\\-][0-3]?\d[/\\\-]\d{4})', birth_val)
+        if m:
+            data['Ngay_sinh'] = m.group(1)
+            date_found = True
+
+    # Nếu vẫn chưa có ngày sinh, dò toàn văn bản sau label 'Ngày sinh' (nếu có)
+    if not date_found:
+        pos = re.search(r'Ngày\s*sinh|Date\s*of\s*Birth|Date\s*of\s*Binh', normalized, re.IGNORECASE)
+        if pos:
+            # lookahead ngắn sau label
+            after = normalized[pos.end():pos.end() + 60]
+            m_after = re.search(r'([0-3]?\d[/\\\-][0-3]?\d[/\\\-]\d{4})', after)
+            if m_after:
+                data['Ngay_sinh'] = m_after.group(1)
+                date_found = True
+
+    # Nếu vẫn chưa có, dò toàn văn bản để tìm bất kỳ ngày nào
+    if not date_found:
+        m_all = re.search(r'([0-3]?\d[/\\\-][0-3]?\d[/\\\-]\d{4})', normalized)
+        if m_all:
+            data['Ngay_sinh'] = m_all.group(1)
+
+    # ===== Địa chỉ / Nơi cư trú / Quê quán =====
+    addr_val = find_field([r'Nơi\s*cư\s*trú', r'Address', r'Địa\s*chỉ', r'Quê\s+quán'])
+    if addr_val:
+        # dọn dẹp tiền tố '/Address:' hoặc ký tự lạ
+        addr_val = re.sub(r'^(\/?Address[:\s]*)', '', addr_val, flags=re.IGNORECASE).strip()
+        data['Dia_chi'] = addr_val
+
+    # ===== Hạng bằng (Class/Hạng) =====
+    class_val = find_field([r'Hạng', r'Class', r'Loại'])
+    if class_val:
+        # lấy mã hạng như A1, A2, B1, B2, C, D, v.v.
+        # Thử tìm các mẫu hạng bằng phổ biến (1-3 ký tự chữ hoa/số)
+        mclass = re.search(r'\b([A-Z][0-9]?[12]?\b|[CDEB]\b)', class_val, re.IGNORECASE)
+        if mclass:
+            data['Hang'] = mclass.group(1).upper()
+        # Nếu không tìm thấy, lấy 1-3 ký tự chữ hoa/số đầu tiên
+        elif re.search(r'([A-Z0-9]{1,3})', class_val, re.IGNORECASE):
+            data['Hang'] = re.search(r'([A-Z0-9]{1,3})', class_val, re.IGNORECASE).group(1).upper()
+
+    # Bước 5: Kiểm tra hợp lệ
+    # Lấy So_GPLX đã được chuẩn hóa (12 chữ số)
+    id_num = data.get('So_GPLX', '')
+    text_upper = (text_original + text_gray).upper()
+
+    required_keywords = [
+        "GPLX", "GIẤY PHÉP LÁI XE", "GIẤY PHÉPLÁIXE", "BỘ GTVT",
+        "DRIVER'S LICENSE", "DRIVER LICENSE"
+    ]
+    is_gplx_document = has_title_found or any(keyword in text_upper for keyword in required_keywords)
+
+    forbidden_keywords = [
+        "CĂN CƯỚC CÔNG DÂN", "CCCD",
+        "PASSPORT", "HỘ CHIẾU", "THẺ CĂN CƯỚC"
+    ]
+    is_forbidden_document = any(keyword in text_upper for keyword in forbidden_keywords)
+
+    # Bước 6: In kết quả
+    if id_num and len(id_num) == 12 and is_gplx_document and not is_forbidden_document:
+        print("\n====================================")
+        print("✅ Thông tin giấy phép lái xe HỢP LỆ")
+        print("====================================")
+        for k, v in data.items():
+            print(f"{k}: {v}")
+    elif not is_gplx_document:
+        print("\n❌ Không tìm thấy từ khóa nhận dạng GIẤY PHÉP LÁI XE (GPLX, BỘ GTVT, v.v.).")
+    elif is_forbidden_document:
+        print("\n❌ Phát hiện từ khóa của tài liệu CẤM (CCCD, PASSPORT,...)")
+    else:  # Trường hợp không tìm thấy đủ điều kiện (ví dụ: không đủ 12 số)
+        print("\n❌ Dữ liệu không hợp lệ (Không phải GPLX, hoặc thiếu thông tin quan trọng).")
+
+    # Bước 7: Trả về dữ liệu
+    if 'So_GPLX' not in data:
+        data['So_GPLX']=""
+    if 'Ho_va_ten' not in data:
+        data['Ho_va_ten']=""
+    if 'Ngay_sinh' not in data:
+        data['Ngay_sinh']=""
+    if 'Dia_chi' not in data:
+        data['Dia_chi']=""
+    if 'Hang' not in data:
+        data['Hang']=""
+    data_ocr = [
+        {'name':"So_GPLX",'label':"Số Giấy Phép Lái Xe",'text': data['So_GPLX']},
+        {'name': "Ho_va_ten", 'label': "Họ Và Tên", 'text': data['Ho_va_ten']},
+        {'name': "Ngay_sinh", 'label': "Ngày Sinh", 'text': data['Ngay_sinh']},
+        {'name': "Dia_chi", 'label': "Địa Chỉ", 'text': data['Dia_chi']},
+        {'name': "Hang", 'label': "Hạng", 'text': data['Hang']},
+         ]
+    return {
+        "data": data_ocr,
+        "has_title": has_title_found,
+        "is_gplx_document": is_gplx_document,
+        "is_valid_id_length": len(id_num) == 12
+    }
+
 
