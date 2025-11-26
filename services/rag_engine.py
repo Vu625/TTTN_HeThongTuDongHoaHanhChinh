@@ -267,7 +267,59 @@ def vector_search_boosted(query, vectorizer, tfidf_matrix, chunks, k=5, boost_fa
     normalized_query = query_vector.multiply(1 / q_norm)
     similarity_scores = normalized_query.dot(tfidf_matrix.T).toarray()[0]
 
-    primary_keywords = ["nguyên tắc", "phạm vi", "hệ thống", "thẩm quyền", "hiệu lực", "giải thích"]
+    primary_keywords = [# --- Nhóm pháp lý – cấu trúc văn bản ---
+        "Nghị định", "Luật Đất đai", "thi hành",
+        "điều khoản", "khoản", "điểm", "chương",
+        "phạm vi điều chỉnh", "đối tượng áp dụng",
+        "quy định chi tiết", "hướng dẫn thi hành",
+        "căn cứ", "hiệu lực", "trách nhiệm thi hành",
+
+        # --- Nhóm loại đất ---
+        "đất đai", "đất nông nghiệp", "đất phi nông nghiệp",
+        "đất trồng lúa", "đất trồng cây hàng năm",
+        "đất trồng cây lâu năm", "đất rừng",
+        "đất rừng đặc dụng", "đất rừng phòng hộ",
+        "đất rừng sản xuất", "đất nuôi trồng thủy sản",
+        "đất chăn nuôi", "đất làm muối", "đất nông nghiệp khác",
+
+        "đất ở", "đất ở tại nông thôn", "đất ở tại đô thị",
+        "đất xây dựng trụ sở", "đất quốc phòng", "đất an ninh",
+        "đất công cộng", "đất giao thông", "đất thủy lợi",
+        "đất công trình công cộng", "đất khu công nghiệp",
+        "đất thương mại dịch vụ", "đất sản xuất kinh doanh",
+        "đất cơ sở sản xuất phi nông nghiệp",
+
+        # --- Nhóm đối tượng sử dụng/quản lý ---
+        "người sử dụng đất", "cơ quan nhà nước",
+        "Bộ Tài nguyên và Môi trường",
+        "chủ sở hữu toàn dân về đất đai",
+        "cá nhân trực tiếp sản xuất nông nghiệp",
+        "cán bộ", "công chức", "viên chức",
+        "người hưởng lương hưu", "người nghỉ mất sức",
+        "hợp đồng lao động",
+
+        # --- Nhóm hành vi/hoạt động đất đai ---
+        "giao đất", "thuê đất", "công nhận quyền sử dụng đất",
+        "chuyển quyền sử dụng đất", "chuyển mục đích sử dụng đất",
+        "quy hoạch", "kế hoạch sử dụng đất",
+        "thẩm quyền", "thu hồi đất",
+        "bồi thường", "hỗ trợ", "tái định cư",
+
+        # --- Nhóm công trình ---
+        "trụ sở cơ quan", "công trình sự nghiệp",
+        "cơ sở văn hóa", "cơ sở y tế", "cơ sở giáo dục",
+        "cơ sở đào tạo", "cơ sở thể dục thể thao",
+        "cơ sở khoa học công nghệ", "cơ sở môi trường",
+        "cơ sở khí tượng thủy văn", "cơ sở ngoại giao",
+
+        # --- Thuật ngữ trọng yếu đất đai ---
+        "quyền sử dụng đất", "giá đất", "định giá đất",
+        "sổ đỏ", "giấy chứng nhận", "giấy chứng nhận quyền sử dụng đất",
+        "hồ sơ địa chính", "bản đồ địa chính",
+        "đăng ký đất đai", "hệ thống thông tin đất đai",
+        "cơ sở dữ liệu đất đai",
+        "hành lang an toàn", "khu vực bảo vệ",
+        "khu vực cấm", "khu vực hạn chế"]
     boosted_scores = np.copy(similarity_scores)
     query_lower = query.lower()
     is_query_focused_on_primary_keyword = any(kw in query_lower for kw in primary_keywords)
@@ -292,7 +344,90 @@ def vector_search_boosted(query, vectorizer, tfidf_matrix, chunks, k=5, boost_fa
     return results
 
 def prepare(file_name):
-    word_stop = ["là","thì","của"]
+    word_stop = ["a", "à", "á", "ạ", "ả", "ã",
+        "ào", "ạ", "ai", "alô", "ào", "ạ",
+        "anh", "anh ấy", "ba", "bác", "bạn", "bằng",
+        "bị", "bình", "bộ", "bỗng", "bởi", "bởi vì", "bớ",
+        "bộ", "bốn", "bớt", "bạn", "bao giờ", "bao lâu", "bao nhiêu",
+        "bất cứ", "bất kì", "bất kỳ", "bất luận", "bấy", "bấy giờ",
+        "bây", "bây giờ", "bấy nhiêu", "biết", "biết bao", "biết chừng nào",
+        "biết đâu", "biết đâu chừng", "biết mình", "biết người",
+        "buổi", "bữa", "bước", "bên", "bên cạnh", "bên ngoài",
+        "bên trong", "bến", "các", "cái", "cả", "cả thảy", "cả thể",
+        "cần", "càng", "căn", "cắt", "cậu", "cây", "cha", "chẳng",
+        "chẳng những", "chẳng nữa", "chẳng phải", "chăng",
+        "chăng nữa", "chính", "chính là", "chỉ", "chỉ có", "chỉ là",
+        "chị", "chị ấy", "chịu", "chiếc", "cho", "cho đến",
+        "cho đến khi", "cho nên", "cho rằng", "cho biết",
+        "chớ", "chớ gì", "chớ kể", "chỗ", "chỗ này", "chốc",
+        "chốc lát", "chọn", "chót", "chợt", "chủng", "chung",
+        "chúng", "chúng mình", "chúng ta", "chúng tôi", "chúng ông",
+        "chung quy", "chuyện", "chưa", "chưa bao giờ", "chưa kể",
+        "chưa tính", "chứ", "chứ lị", "chứ còn", "chủ", "coi",
+        "con", "có", "có ai", "có bao nhiêu", "có chăng", "có chăng là",
+        "có khi", "có ngày", "có phải", "có thể", "có thể",
+        "có điều", "có điều là", "cóc", "cô", "cô ấy", "còn",
+        "còn như", "còn nữa", "còn thời gian", "cả", "cóc", "cùng",
+        "cùng nhau", "cuối cùng", "cuối", "cũng", "cũng như",
+        "cũng được", "cuộc", "cực", "cơ", "cứ", "cứ như", "cứ việc",
+        "cực kỳ", "của", "cũng", "dạ", "dần", "dầu sao", "dẫu",
+        "dẫu sao", "dẫn", "dĩ nhiên", "do", "do vì", "do đó",
+        "do vậy", "dù", "dù cho", "dù gì", "dù rằng", "dù sao",
+        "dùng", "dưới", "dường như", "đang", "đang khi", "đang tại",
+        "đành", "đánh", "đánh đùng", "đã", "đã bao lâu", "đã từng",
+        "đã rồi", "đã vậy", "đại loại", "đại để", "đầu tiên", "đầy",
+        "đấy", "để", "để cho", "để mà", "đến", "đến cả", "đến giờ",
+        "đến khi", "đến lúc", "đến nay", "đến như", "đến nỗi",
+        "đều", "đi", "điều", "điều gì", "đích thực", "đích thị",
+        "đó", "đó đây", "đôi", "đôi khi", "đổi lại", "đối với",
+        "đợi", "được", "được cái", "được biết", "được rồi",
+        "đương", "đương nhiên", "được", "em", "em ấy", "gì",
+        "gì đó", "giờ", "giờ đây", "giờ thì", "giống", "giống như",
+        "giữa", "giữ", "gần", "gần như", "gặp", "gắng", "gáì",
+        "gọi", "gồm", "ha", "hai", "hai là", "hai nữa", "hẳn",
+        "hẳn là", "hầu", "hết", "hết cả", "hết thảy", "hết sức",
+        "hơn", "hơn nữa", "hoặc", "hoặc là", "họ", "họ đó", "là",
+        "là cùng", "là nữa", "là phải", "lại", "lại còn", "lại nữa",
+        "lần", "lắm", "lâu", "lâu nay", "lẽ", "lẽ nào", "lên", "lên đến",
+        "lúc", "lúc khác", "lúc nào", "lúc ấy", "lúc đó", "lúc trước",
+        "lúc sau", "lúc này", "lúc nào đó", "luôn", "luôn luôn",
+        "lý do", "mà", "mà cả", "mà thôi", "mà lại", "mặc dù",
+        "mình", "một", "một khi", "một số", "một cách", "mỗi",
+        "mỗi khi", "mới", "mới hay", "mới rồi", "mọi", "mọi người",
+        "mọi việc", "mọi thứ", "muốn", "mức", "nào", "nào là",
+        "này", "này nọ", "nên", "nên chi", "nên chăng", "nên là",
+        "nếu", "nếu có", "nếu như", "ngay", "ngay cả", "ngay khi",
+        "ngay lập tức", "ngay lúc", "ngay từ", "ngày", "ngày càng",
+        "ngày ngày", "ngày nay", "ngày trước", "nghe", "nghĩ",
+        "nghĩa là", "người", "người ta", "ngôi", "ngọn", "ngọt",
+        "ngồi", "ngộ nhỡ", "nhé", "nhiều", "nhiều khi", "nhiều lần",
+        "nhưng", "nhưng mà", "như", "như ai", "như là", "như vậy",
+        "như thế", "nhỉ", "nhìn", "nhất", "nhất là", "nhất định",
+        "nhờ", "nhờ có", "nó", "nói", "nọ", "nơi", "nơi nào",
+        "nước", "nữa", "nữa là", "phải", "phải biết", "phải chi",
+        "phải chăng", "phải rồi", "phía", "phía bên", "phía dưới",
+        "phía trên", "phút", "phần", "phần lớn", "phần nhiều",
+        "qua", "qua khỏi", "qua lại", "quan trọng", "quá", "quá mức",
+        "quá trời", "quả thật", "quả là", "quý vị", "ra", "ra sao",
+        "ra thế", "ráng", "rằng", "rằng là", "rất", "rất nhiều",
+        "rồi", "rồi đây", "rồi thì", "rút cục", "sang", "sao",
+        "sao bằng", "sau", "sau cùng", "sau đó", "sau này", "so với",
+        "song", "song le", "sớm", "số", "số là", "sự", "sự thật",
+        "sự việc", "sự tình", "ta", "ta đây", "ta sẽ", "tại", "tại vì",
+        "tại sao", "tất cả", "tất thảy", "tất nhiên", "tên", "thà",
+        "thà rằng", "thành ra", "thành thử", "thay vì", "thật",
+        "thật ra", "thật sự", "thật tình", "thấy", "thế", "thế là",
+        "thế nào", "thế nào là", "thế nên", "thế ra", "thế thì",
+        "theo", "thì", "thì ra", "thỉnh thoảng", "thoạt", "thoạt tiên",
+        "thôi", "thời gian", "thường", "thường khi", "thường thường",
+        "tuần", "tuy", "tuy là", "tuy nhiên", "tuy thế", "tuy rằng",
+        "từng", "tức", "tức là", "tự", "tự nhiên", "tựu trung",
+        "ủa", "và", "vẫn", "vào", "vậy", "vậy là", "vậy nên",
+        "về", "về không", "việc", "việc gì", "vì", "vì chưng",
+        "vì rằng", "vì sao", "với", "với lại", "với nhau",
+        "vở", "vô", "vô cùng", "vừa", "vừa khi", "vừa mới",
+        "xem", "xa", "xa xa", "xa xôi", "xảy ra", "xong",
+        "yêu", "ý", "à", "ạ", "ừ", "ờ", "ơ", ""]
     text = read_txt(file_name)
     chunks = split_into_chunks(text)
     raw_texts = [chunk['content'] for chunk in chunks]
