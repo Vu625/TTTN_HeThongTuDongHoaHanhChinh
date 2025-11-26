@@ -51,7 +51,9 @@ def check_role(required_role):
         if st.button("Đăng Nhập Ngay!"):
             st.switch_page("pages/Login_page.py")
         st.stop()
-    if st.session_state.get("role") != required_role:
+    if st.session_state.get("role") == 'admin':
+        st.success("Chào admin")
+    elif st.session_state.get("role") != required_role:
         st.error("Bạn không có quyền truy cập trang này!")
         if st.button("Đăng Nhập Lại?"):
             st.switch_page("pages/Login_page.py")
