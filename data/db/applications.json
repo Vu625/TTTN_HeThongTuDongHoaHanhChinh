@@ -63,7 +63,7 @@
     "application_id": "6017e765-cf33-4476-8a89-c621b618f1b0",
     "citizen_id": "C001",
     "form_template_id": "T001",
-    "status": "submitted",
+    "status": "approved",
     "submitted_at": "2025-11-05T10:20:38.327161",
     "documents": [
       "data\\db\\uploads\\Cancuoc_vu.png"
@@ -73,9 +73,25 @@
       "Ho_va_ten": "trường phạm",
       "Que_quan": "bình phước"
     },
-    "current_step": 2,
-    "ocr_texts": {},
-    "basic_check_result": "approved"
+    "current_step": 3,
+    "ocr_texts": {
+      "Cancuoc_vu.png": {
+        "So_CCCD": "079204026877",
+        "Ho_va_ten": "NGUYÊN ĐỖ ANH VŨ _.",
+        "Gioi_tinh": "Nam",
+        "Que_quan": "'W TPHCM",
+        "Noi_thuong_tru": "Văn Chiêu, P9, Gò s1 TP.F"
+      }
+    },
+    "basic_check_result": "approved",
+    "approve_result": "success",
+    "approve_note": "approved",
+    "notification": {
+      "seen": true,
+      "type": "approved",
+      "message": "approved",
+      "time": "2025-11-24 10:55:07"
+    }
   },
   {
     "application_id": "ec366818-f16d-4fa0-8e80-2a1e447931e7",
@@ -127,5 +143,67 @@
     "current_step": 1,
     "basic_check_result": "approved",
     "ocr_texts": {}
+  },
+  {
+    "application_id": "6993733e-87e7-4345-9d2d-8f459c50e72a",
+    "citizen_id": "C001",
+    "form_template_id": "T001",
+    "status": "submitted",
+    "submitted_at": "2025-11-24T10:09:32.031470",
+    "documents": [
+      "data\\db\\uploads\\cccd.jpg"
+    ],
+    "form_data": {
+      "So_CCCD": "001204014664",
+      "Ho_va_ten": "nguyễn minh quân ",
+      "Que_quan": "hòa long, thành phố bắc ninh, bắc ninh"
+    },
+    "basic_check_result": "approved",
+    "current_step": 2,
+    "ocr_texts": {}
+  },
+  {
+    "application_id": "39869b46-e1a4-46de-98c8-0db963e4c957",
+    "citizen_id": "C001",
+    "form_template_id": "T001",
+    "status": "submitted",
+    "submitted_at": "2025-11-24T10:17:49.140021",
+    "documents": [
+      "data\\db\\uploads\\Cancuoc_vu.png"
+    ],
+    "form_data": {
+      "So_CCCD": "",
+      "Ho_va_ten": "",
+      "Que_quan": ""
+    },
+    "basic_check_result": "approved",
+    "current_step": 3,
+    "ocr_texts": {}
+  },
+  {
+    "application_id": "5dbcb1ef-caf2-40ae-aa6c-8a1682d4ee49",
+    "citizen_id": "C001",
+    "form_template_id": "T001",
+    "status": "approved",
+    "submitted_at": "2025-11-24T10:30:58.442669",
+    "documents": [
+      "data\\db\\uploads\\Cancuoc_vu.png"
+    ],
+    "form_data": {
+      "So_CCCD": "",
+      "Ho_va_ten": "",
+      "Que_quan": ""
+    },
+    "basic_check_result": "approved",
+    "current_step": 3,
+    "ocr_texts": {},
+    "approve_result": "success",
+    "approve_note": "",
+    "notification": {
+      "seen": true,
+      "type": "approved",
+      "message": "",
+      "time": "2025-11-24 10:54:15"
+    }
   }
 ]

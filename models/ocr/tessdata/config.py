@@ -3,7 +3,6 @@ import os
 
 # Đường dẫn cài đặt Tesseract trên Windows
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-
 # Thiết lập đường dẫn cho pytesseract
 # Đây là bước BẮT BUỘC trên Windows để pytesseract hoạt động
 pytesseract.tesseract_cmd = TESSERACT_PATH
