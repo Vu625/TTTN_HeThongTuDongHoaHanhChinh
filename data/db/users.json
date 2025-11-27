@@ -2,7 +2,7 @@
   {
     "user_id": "C001",
     "username": "citizen",
-    "password": "123456",
+    "password": "$2b$12$RHSQSHXu11tu6OjOMqc2EOwEmVDGNyuYxdoTEEIEnjw3jVVfMfFUu",
     "role": "citizen",
     "full_name": "Nguyễn Văn A",
     "email": "vana@example.com"
@@ -10,7 +10,7 @@
   {
     "user_id": "O005",
     "username": "officer",
-    "password": "123456",
+    "password": "$2b$12$JdQlMnI39k8dt6eeEjt6v.n1mYD98M744aoroIFJHN2ovGAeHuaxC",
     "role": "officer",
     "full_name": "Trần Thị B",
     "email": "canbo.b@phuong.gov"
@@ -18,9 +18,9 @@
   {
     "user_id": "A001",
     "username": "admin",
-    "password": "123456",
+    "password": "$2b$12$L6EURY7HTHULzBk0o2oXNunlVLKkB0jUYWfm4rxHCgaB90Y9JuAga",
     "role": "admin",
-    "full_name": "Quản trị Hệ thống",
+    "full_name": "Nguyễn Anh Vũ",
     "email": "admin@phuong.gov"
   }
 ]
