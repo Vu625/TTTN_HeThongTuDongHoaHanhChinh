@@ -81,3 +81,11 @@ def get_workflow_for_procedure(code):
     #     if wf["workflow_id"] == code:
     #         return wf["steps"]
     return []
+
+def name_status(name):
+    if name == "rejected":
+        return "Từ Chối"
+    elif name == "approved":
+        return "Đã Duyệt"
+    elif name == "submitted":
+        return "Chưa Xử Lí"

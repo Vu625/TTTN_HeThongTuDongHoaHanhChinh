@@ -16,11 +16,9 @@ if login_btn:
         st.warning("Vui lòng nhập đầy đủ thông tin.")
     else:
         user = authenticate_user(user_id, password)
-        if user and password == user["password"]:
+        if user:
             login_success(user)
             st.success("Đăng nhập thành công! Đang chuyển hướng...")
-
-            # Dùng Streamlit switch_page (Streamlit >= 1.25)
             if user["role"] == "citizen":
                 st.switch_page("pages/Citizen_Home.py")
             elif user["role"] == "officer":

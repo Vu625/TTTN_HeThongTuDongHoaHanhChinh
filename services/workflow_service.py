@@ -16,7 +16,7 @@ import streamlit as st
 
 
 def basic_check(app):
-    st.subheader("📑 Kiểm tra thông tin hồ sơ (Basic Check)")
+    st.subheader("📑 Kiểm tra thông tin hồ sơ")
     st.divider()
 
     st.markdown("### 📎 Tài liệu đính kèm:")

@@ -3,7 +3,7 @@ from services.llm_inference import ask_lmstudio
 import time
 from services.auth_service import check_role
 from services.layout import display_back_button
-check_role("citizen")
+check_role("citizen","admin","officer")
 display_back_button()
 
 st.set_page_config(page_title="Trợ lý ảo", layout="wide")
@@ -26,48 +26,6 @@ def on_suggest_click(prompt):
     st.session_state.suggest_clicked = True
     st.session_state.suggest_prompt = prompt
 
-
-# def handle_prompt(prompt):
-#     """Xử lý logic gửi tin nhắn chung."""
-#     if not prompt.strip():
-#         return
-#
-#     st.session_state.messages.append(("user", prompt))
-#
-#     with st.spinner("Trợ lý đang phản hồi..."):
-#         time.sleep(1)
-#
-#     st.session_state.messages.append(("bot", f"Tôi đã nhận được: '{prompt}'"))
-#
-#     st.session_state.history.append(prompt)
-#     st.session_state.history = st.session_state.history[-10:]
-#     st.session_state.input_key += 1  # Thay đổi key để xóa input box
-#     st.rerun()
-
-# def handle_prompt(prompt):
-#     """Xử lý logic gửi tin nhắn chung."""
-#     if not prompt.strip():
-#         return
-#
-#     # 1. Thêm tin nhắn người dùng vào state
-#     st.session_state.messages.append(("user", prompt))
-#
-#     # 2. Hiển thị spinner và gọi hàm LM Studio
-#     with st.spinner("Trợ lý đang phản hồi..."):
-#         # **********************************************
-#         # *** CHỈNH SỬA Ở ĐÂY: GỌI HÀM LM STUDIO ***
-#         # **********************************************
-#         bot_response = ask_lmstudio(prompt)
-#         # **********************************************
-#
-#     # 3. Thêm phản hồi của bot vào state
-#     st.session_state.messages.append(("bot", bot_response))
-#
-#     # 4. Cập nhật lịch sử và xóa input box
-#     st.session_state.history.append(prompt)
-#     st.session_state.history = st.session_state.history[-10:]
-#     st.session_state.input_key += 1
-#     st.rerun() # Quan trọng để làm mới giao diện
 def handle_prompt(prompt):
     """Xử lý logic gửi tin nhắn chung và buộc làm mới giao diện."""
     if not prompt.strip():
@@ -105,12 +63,6 @@ if "suggest_prompt" not in st.session_state:
 if "initial_input_box" not in st.session_state:
     st.session_state.initial_input_box = ""
 
-# Logic xử lý Gợi ý (Nằm ngoài callback)
-# if st.session_state.suggest_clicked:
-#     handle_prompt(st.session_state.suggest_prompt)
-#     st.session_state.suggest_clicked = False
-#     st.session_state.suggest_prompt = None
-#     del st.session_state["suggest_clicked"]
 if st.session_state.suggest_clicked:
     # 1. RESET NGAY LẬP TỨC: Đảm bảo flag lặp vô tận được tắt ngay trước khi gọi handle_prompt
     temp_prompt = st.session_state.suggest_prompt
@@ -120,47 +72,127 @@ if st.session_state.suggest_clicked:
     # 2. XỬ LÝ PROMPT: Gọi handle_prompt với prompt đã lưu
     # Hàm này sẽ chạy logic AI và gọi st.rerun()
     handle_prompt(temp_prompt)
-# ======== 1. CSS Tối ưu ==========
+
+# ======== 1. CSS Tối ưu cho Theme Dark/Light ==========
 st.markdown(f"""
     <style>
     /* Reset và Cấu hình chung */
     .block-container {{ padding: 0 !important; max-width: 100% !important; }}
     [data-testid="stHeader"], [data-testid="stToolbar"], footer {{ display: none !important; }}
-    [data-testid="stAppViewContainer"] {{ background-color: white; }}
-    /*[data-testid="stVerticalBlock"] {{ height: 100vh; display: flex; flex-direction: column; overflow: hidden; }}*/
+    /* Dùng background-color mặc định để thích nghi với theme */
+    /* stAppViewContainer - KHÔNG GHI ĐÈ, để Streamlit xử lý */
+    /* [data-testid="stAppViewContainer"] {{ background-color: var(--background-color); }} */ 
 
     /* 2. CSS Sidebar */
     [data-testid="stSidebar"] {{
         width: {SIDEBAR_WIDTH}px !important;
-        background-color: white !important;
+        /* Dùng secondary-background-color cho sidebar */
+        background-color: var(--secondary-background-color) !important; 
         padding: 10px 10px 10px 20px !important; 
-        border-right: 1px solid #ddd;
+        /* Dùng border-color */
+        border-right: 1px solid var(--border-color); 
         min-width: {SIDEBAR_WIDTH}px !important;
         overflow-y: auto;
     }}
-    .new-chat-btn-container button {{ background-color: {PRIMARY_COLOR}; color: white; text-align: center; padding: 12px 0; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%; border: none; font-size: 1rem; }}
+    /* Nút Chat mới */
+    .new-chat-btn-container button {{ 
+        background-color: {PRIMARY_COLOR}; /* Giữ màu nhấn cố định */
+        color: white; 
+        text-align: center; 
+        padding: 12px 0; 
+        border-radius: 8px; 
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: 0.2s; 
+        width: 100%; 
+        border: none; 
+        font-size: 1rem; 
+    }}
 
     /* 3. CSS Khu vực Chat Chính */
-    .chat-box {{ flex-grow: 1; overflow-y: auto; padding: 20px 24px; background-color: #f8f9fa; }}
+    .chat-box {{ 
+        flex-grow: 1; 
+        overflow-y: auto; 
+        padding: 20px 24px; 
+        /* Dùng background-color cho khu vực chat chính */
+        background-color: var(--background-color); 
+    }}
     /* Định dạng tin nhắn */
     .message {{ margin-bottom: 20px; display: flex; align-items: flex-start; }}
-    .avatar {{ width: 32px; height: 32px; border-radius: 50%; background-color: {PRIMARY_COLOR}; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; font-size: 16px; }}
-    .msg-text {{ padding: 10px 14px; background-color: white; border: 1px solid #ddd; border-radius: 18px; max-width: 75%; font-size: 15px; line-height: 1.5; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }}
+    .avatar {{ 
+        width: 32px; 
+        height: 32px; 
+        border-radius: 50%; 
+        background-color: {PRIMARY_COLOR}; /* Giữ màu nhấn cố định */
+        color: white; 
+        font-weight: bold; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        margin-right: 10px; 
+        flex-shrink: 0; 
+        font-size: 16px; 
+    }}
+    .msg-text {{ 
+        padding: 10px 14px; 
+        /* Dùng secondary-background-color cho bot */
+        background-color: var(--secondary-background-color); 
+        /* Dùng border-color */
+        border: 1px solid var(--border-color); 
+        border-radius: 18px; 
+        max-width: 75%; 
+        font-size: 15px; 
+        line-height: 1.5; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+    }}
     .user-msg {{ flex-direction: row-reverse; justify-content: flex-start; }}
-    .user-msg .msg-text {{ background-color: #e6f2ff; text-align: left; border-color: #007bff33; }}
-    .user-msg .avatar {{ background-color: #6c757d; margin-left: 10px; margin-right: 0; }}
+    .user-msg .msg-text {{ 
+        /* Dùng màu nhấn (primary color) cho tin nhắn user */
+        background-color: rgba(0, 123, 255, 0.15); /* Màu nền nhạt dựa trên PRIMARY_COLOR */
+        text-align: left; 
+        border-color: {PRIMARY_COLOR}; 
+    }}
+    .user-msg .avatar {{ 
+        /* Dùng màu trung tính cho user */
+        background-color: var(--text-color); 
+        margin-left: 10px; 
+        margin-right: 0; 
+    }}
 
     /* 4. CSS Cho Input Area Cố định */
-    .stForm {{ flex-shrink: 0; padding: 10px 24px 10px 24px !important; margin-top: 0px; border-top: 1px solid #ddd; background-color: white; }}
+    .stForm {{ 
+        flex-shrink: 0; 
+        padding: 10px 24px 10px 24px !important; 
+        margin-top: 0px; 
+        border-top: 1px solid var(--border-color); /* Dùng border-color */
+        background-color: var(--background-color); /* Dùng background-color */
+    }}
     .stTextInput label {{ display: none; }}
     div[data-testid="stColumn"] {{ display: flex; align-items: center; gap: 10px; }}
-    .stTextInput input {{ height: 50px; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 10px 15px; }}
-    [data-testid="stForm"] button {{ background-color: {PRIMARY_COLOR}; color: white; height: 50px; padding: 0 16px; font-size: 1rem; border-radius: 8px; }}
+    .stTextInput input {{ 
+        height: 50px; 
+        border-radius: 8px; 
+        border: 1px solid var(--border-color); /* Dùng border-color */
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+        padding: 10px 15px; 
+        background-color: var(--secondary-background-color); /* Nền input */
+        color: var(--text-color); /* Màu chữ */
+    }}
+    /* Nút Gửi */
+    [data-testid="stForm"] button {{ 
+        background-color: {PRIMARY_COLOR}; /* Giữ màu nhấn cố định */
+        color: white; 
+        height: 50px; 
+        padding: 0 16px; 
+        font-size: 1rem; 
+        border-radius: 8px; 
+    }}
 
 
     /* CSS Input HỘP TRUNG TÂM & GỢI Ý */
     .suggestion-box {{ 
-        background-color: white; 
+        /* Dùng secondary-background-color cho hộp gợi ý */
+        background-color: var(--secondary-background-color); 
         padding: 40px 30px; 
         border-radius: 16px; 
         box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
@@ -170,24 +202,25 @@ st.markdown(f"""
         margin-right: auto;
         text-align: center;
     }}
-    .suggestion-box h3 {{ color: {PRIMARY_COLOR}; margin-bottom: 10px; font-size: 2rem; font-weight: 700; }}
-    .suggestion-box p {{ color: #6c757d; margin-bottom: 30px; }}
+    .suggestion-box h3 {{ color: var(--text-color); margin-bottom: 10px; font-size: 2rem; font-weight: 700; }}
+    .suggestion-box p {{ color: var(--text-color); opacity: 0.7; margin-bottom: 30px; }}
 
-    /* Các nút gợi ý LỚN (Làm nổi bật) */
+    /* Các nút gợi ý LỚN */
     .suggestion-buttons-container {{ 
         display: flex; 
         flex-wrap: wrap; 
         justify-content: center; 
         gap: 15px; 
         margin-top: 20px;
-        margin-bottom: 30px; /* Thêm margin dưới để cách Input */
+        margin-bottom: 30px; 
     }}
     .suggestion-item {{ flex: 1 1 calc(50% - 30px); max-width: 350px; min-width: 250px; }}
     .suggestion-item button {{ 
-        background-color: #f1f3f5; 
-        border: 1px solid #dee2e6; 
-        color: #333; 
-        padding: 15px 20px; /* Kích thước lớn */
+        /* Dùng secondary-background-color và border-color */
+        background-color: var(--secondary-background-color); 
+        border: 1px solid var(--border-color); 
+        color: var(--text-color); 
+        padding: 15px 20px; 
         border-radius: 12px;
         font-size: 1rem;
         font-weight: 500;
@@ -196,25 +229,27 @@ st.markdown(f"""
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }}
     .suggestion-item button:hover {{ 
-        background-color: #e9ecef;
+        /* Thay đổi hover để sử dụng primary color */
+        background-color: rgba(0, 123, 255, 0.15);
         color: {PRIMARY_COLOR};
         border-color: {PRIMARY_COLOR}; 
         transform: translateY(-1px);
     }}
 
-    /* Input box trung tâm (nhỏ gọn, nằm dưới) */
+    /* Input box trung tâm */
     .initial-input-container {{ margin-top: 20px; }}
     .initial-input-container .stTextInput input {{
-        height: 50px; /* Nhỏ gọn hơn */
+        height: 50px; 
         font-size: 1rem; 
-        border: 1px solid #ddd; /* Trở lại màu chuẩn */
+        border: 1px solid var(--border-color); 
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        background-color: var(--background-color);
+        color: var(--text-color);
     }}
-
     </style>
 """, unsafe_allow_html=True)
 
-# ======= Layout chính: SỬ DỤNG st.sidebar CHO THANH BÊN =======
+# ======= Phần Layout chính (Không thay đổi) =======
 
 # Sidebar
 with st.sidebar:
@@ -247,13 +282,6 @@ if not st.session_state.messages:
                 st.button(prompt, on_click=on_suggest_click, args=(prompt,), key=f"suggest_{i}")
                 st.markdown('</div>', unsafe_allow_html=True)
 
-    # st.markdown("""
-    #         </div>
-    #
-    #         <div class="initial-input-container">
-    # """, unsafe_allow_html=True)
-
-    # 2. KHUNG INPUT TRUNG TÂM (ĐẶT XUỐNG DƯỚI)
     st.text_input(
         "Nhập câu hỏi của bạn:",
         value="",

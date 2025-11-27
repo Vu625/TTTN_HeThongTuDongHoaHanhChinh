@@ -4,13 +4,15 @@ from services.ocr_service import read_text_from_pdf
 from services.rag_engine import bulk_prepare_and_index
 import time
 from services.layout import display_back_button
+from services.auth_service import check_role
+check_role("officer","admin")
 # - Bật/tắt cache AI
 FOLDER_PATH = 'data/db/law_texts'
 # --- CẤU HÌNH ---
 if not os.path.exists(FOLDER_PATH):
     os.makedirs(FOLDER_PATH)
 display_back_button()
-st.title("📂 Quản lý Tài Liệu (TXT & OCR PDF)")
+st.title("📂 Cài Đặt cho ChatBot")
 
 # Khởi tạo session state
 if 'edit_file' not in st.session_state: st.session_state.edit_file = None
@@ -77,7 +79,7 @@ if uploaded_file is not None:
 st.markdown("---")
 
 # --- PHẦN 2: DANH SÁCH & CHỨC NĂNG ---
-st.subheader("2. Danh sách tài liệu")
+st.subheader("2. Danh sách tài liệu hiện có")
 
 files = [f for f in os.listdir(FOLDER_PATH) if f.endswith('.txt')]
 

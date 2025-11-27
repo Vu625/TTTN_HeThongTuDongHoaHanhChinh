@@ -1,6 +1,6 @@
 import streamlit as st
 from services.auth_service import check_role
-from services.data_viz_service import load_applications, save_applications, get_workflow_for_procedure , user_full_name , get_name_form
+from services.data_viz_service import load_applications, save_applications, get_workflow_for_procedure , user_full_name , get_name_form, name_status
 from pathlib import Path
 from services.workflow_service import ACTIONS
 from services.layout import display_back_button
@@ -24,7 +24,7 @@ else:
     step_data = steps[current_step - 1]
     st.subheader(f"🪜 Bước {current_step}/{len(steps)}: {step_data['title']}")
     st.write(f"**Người nộp:** {user_full_name(app['citizen_id'])}")
-    st.write(f"**Trạng thái:** {app['status']}")
+    st.write(f"**Trạng thái:** {name_status(app['status'])}")
     st.divider()
 
     # === Gọi hành động tương ứng ===

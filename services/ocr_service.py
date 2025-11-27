@@ -12,11 +12,6 @@ import os
 import re
 from typing import List, Dict
 import fitz
-from  models.ocr.tessdata import config
-# from models.ocr.tessdata import config
-# tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-# if tesseract_path:
-#     pytesseract.tesseract_cmd = tesseract_path
 
 UPLOAD_DIR = Path("data/db/uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -101,44 +96,22 @@ def extract_text(file_path):
         return ""
 
 
-
-
-# tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-# if tesseract_path:
-#     pytesseract.tesseract_cmd = tesseract_path
-
-
-
-# 2. Thiết lập đường dẫn đến file ảnh CCCD bạn muốn OCR:
-#    (Thay thế bằng đường dẫn tuyệt đối hoặc tương đối đến ảnh của bạn)
-# img_path = "Cancuoc_vu.png"
-# =========================================================================
-
 def ocr_cccd(image_path):
     # Kiểm tra file ảnh có tồn tại không
     if not os.path.exists(image_path):
         print(f"❌ Lỗi: Không tìm thấy file ảnh tại đường dẫn: {image_path}")
         return {"data": {}, "has_title": False, "is_cccd_document": False}
-
-    # Bước 1 & 2: Đọc ảnh (thay thế bước upload của Colab)
     try:
         image = Image.open(image_path)
     except Exception as e:
         print(f"❌ Lỗi khi mở ảnh: {e}")
         return {"data": {}, "has_title": False, "is_cccd_document": False}
-
-    # OCR 1: Grayscale để lấy chính xác "CĂN CƯỚC CÔNG DÂN"
     img_gray = image.convert("L")
-
-    # ⚠️ Lưu ý: Trong PyCharm, không cần phải lưu file tạm trong /content/
-    #           như Colab, nhưng ta vẫn giữ lại để dễ debug
-    # img_gray.save("img_gray_temp.png")
 
     text_gray = pytesseract.image_to_string(img_gray, lang='vie')
     print("OCR Grayscale (cho title):")
     print(text_gray)
 
-    # OCR 2: Ảnh gốc để lấy thông tin chi tiết chính xác
     text_original = pytesseract.image_to_string(image, lang='vie')
     print("\nOCR Original (cho data):")
     print(text_original)
@@ -185,8 +158,6 @@ def ocr_cccd(image_path):
         data['Ho_va_ten'] = name_found
 
 
-    # Ngày sinh
-    # Ngày sinh (phương án A mở rộng)
     m = re.search(r'Ngày\s*sinh[^\n\r]*?(\d{1,2}[/\\\-]\d{1,2}[/\\\-]\d{2,4})', text_original, re.IGNORECASE)
     birth_candidate = None
     if m:
@@ -338,12 +309,7 @@ def ocr_cccd(image_path):
 
 OCR_AVAILABLE = True
 def read_text_from_pdf(pdf_path: str) -> Dict[str, any]:
-    """
-    Đọc và trích xuất toàn bộ văn bản từ mỗi trang của file PDF.
-    Nếu file là PDF dạng ảnh quét (scanned PDF), nó sẽ tự động chuyển sang dùng OCR.
-    """
     text_by_page = []
-
     try:
         # Kiểm tra sự tồn tại của file trước khi mở
         if not os.path.exists(pdf_path):
@@ -353,9 +319,7 @@ def read_text_from_pdf(pdf_path: str) -> Dict[str, any]:
                 "pages_count": 0,
                 "text_by_page": []
             }
-
         document = fitz.open(pdf_path)
-
         if len(document) == 0:
             document.close()
             return {
@@ -364,7 +328,6 @@ def read_text_from_pdf(pdf_path: str) -> Dict[str, any]:
                 "pages_count": 0,
                 "text_by_page": []
             }
-
         # Lặp qua từng trang
         for page_num in range(len(document)):
             page = document.load_page(page_num)
@@ -413,9 +376,7 @@ def read_text_from_pdf(pdf_path: str) -> Dict[str, any]:
             "pages_count": 0,
             "text_by_page": []
         }
-# a = ocr_cccd("data\\db\\uploads\\GPLX_mattruoc.jpg")
-#
-# print(a)
+
 def ocr_gplx(img_path):
     # Bước 1: Yêu cầu đường dẫn file ảnh cục bộ
     # print("📸 Vui lòng nhập đường dẫn tới ảnh Giấy phép lái xe cục bộ (ví dụ: C:\\Users\\...\\gplx.jpg):")
