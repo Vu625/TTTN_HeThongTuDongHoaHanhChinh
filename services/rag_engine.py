@@ -12,37 +12,40 @@ from scipy.sparse import csr_matrix, save_npz, load_npz
 from scipy.sparse.linalg import norm as sparse_norm
 import glob
 import pickle
+from pathlib import Path
+import pickle
+from scipy.sparse import save_npz
 BASE_DIR = Path(__file__).resolve().parent.parent   # nhảy ra khỏi services/
 LAW_DIR = BASE_DIR / "data/db/law_texts"
 Path_Vecto = Path("data/db/database_vecto")
-def load_law_texts():
-    texts = []
-    for file in LAW_DIR.glob("*.txt"):
-        with open(file, "r", encoding="utf-8") as f:
-            texts.append((file.name, f.read()))
-    return texts
-
-def build_vector_store():
-    texts = load_law_texts()
-    docs = [t[1] for t in texts]
-    vectorizer = TfidfVectorizer(stop_words="english")
-    vectors = vectorizer.fit_transform(docs)
-    return texts, vectorizer, vectors
-
-def retrieve_relevant_text(query, vectorizer, vectors, texts, top_k=1):
-    query_vec = vectorizer.transform([query])
-    similarities = cosine_similarity(query_vec, vectors).flatten()
-    top_indices = similarities.argsort()[-top_k:][::-1]
-    results = [(texts[i][0], texts[i][1], similarities[i]) for i in top_indices]
-    return results
-
-def generate_answer(query):
-    texts, vectorizer, vectors = build_vector_store()
-    results = retrieve_relevant_text(query, vectorizer, vectors, texts)
-    if not results:
-        return "Xin lỗi, tôi không tìm thấy quy định phù hợp."
-    filename, content, score = results[0]
-    return f"📘 Theo **{filename}**:\n\n{content.strip()}\n\n(Độ liên quan: {score:.2f})"
+# def load_law_texts():
+#     texts = []
+#     for file in LAW_DIR.glob("*.txt"):
+#         with open(file, "r", encoding="utf-8") as f:
+#             texts.append((file.name, f.read()))
+#     return texts
+#
+# def build_vector_store():
+#     texts = load_law_texts()
+#     docs = [t[1] for t in texts]
+#     vectorizer = TfidfVectorizer(stop_words="english")
+#     vectors = vectorizer.fit_transform(docs)
+#     return texts, vectorizer, vectors
+#
+# def retrieve_relevant_text(query, vectorizer, vectors, texts, top_k=1):
+#     query_vec = vectorizer.transform([query])
+#     similarities = cosine_similarity(query_vec, vectors).flatten()
+#     top_indices = similarities.argsort()[-top_k:][::-1]
+#     results = [(texts[i][0], texts[i][1], similarities[i]) for i in top_indices]
+#     return results
+#
+# def generate_answer(query):
+#     texts, vectorizer, vectors = build_vector_store()
+#     results = retrieve_relevant_text(query, vectorizer, vectors, texts)
+#     if not results:
+#         return "Xin lỗi, tôi không tìm thấy quy định phù hợp."
+#     filename, content, score = results[0]
+#     return f"📘 Theo **{filename}**:\n\n{content.strip()}\n\n(Độ liên quan: {score:.2f})"
 
 def read_txt(filename):
     file_path = (LAW_DIR / filename).resolve()
@@ -56,7 +59,7 @@ def split_into_chunks(text):
     chunks = []
 
     # 1) Tách tên Nghị định (giả sử dòng đầu hoặc có "Nghị định")
-    match_nghidinh = re.search(r'(Nghị định.*?)(\n|$)', text, re.IGNORECASE)
+    match_nghidinh = re.search(r'(Chính phủ ban hành .*?)(\n|$)', text, re.IGNORECASE)
     nghidinh_title = ""
     if match_nghidinh:
         nghidinh_title = match_nghidinh.group(1).strip()
@@ -68,7 +71,6 @@ def split_into_chunks(text):
     chuong_list = re.findall(chuong_pattern, text, flags=re.DOTALL)
 
     for chuong_block in chuong_list:
-        # Lấy tên Chương (dòng đầu)
         chuong_title = chuong_block.split("\n")[0].strip()
 
         # Nội dung còn lại của Chương
@@ -191,16 +193,11 @@ class CustomTfidfVectorizer:
         tfidf_matrix = tfidf_matrix.multiply(1 / norms)
         return tfidf_matrix
 
-from pathlib import Path
-import pickle
-from scipy.sparse import save_npz
-
 # BASE_DIR: thư mục gốc của project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # VECTOR_DIR: thư mục lưu vector
 VECTOR_DIR = BASE_DIR / "data/db/database_vecto"
-
 
 def save_index(vectorizer, tfidf_matrix, chunks, index_prefix):
 
@@ -225,7 +222,6 @@ def save_index(vectorizer, tfidf_matrix, chunks, index_prefix):
         pickle.dump(chunks, f)
 
     print("✅ Lưu thành công:", index_prefix)
-
 
 def load_index(index_prefix):
 
@@ -342,7 +338,6 @@ def vector_search_boosted(query, vectorizer, tfidf_matrix, chunks, k=5, boost_fa
                 'metadata': chunks[idx]['metadata']
             })
     return results
-
 def prepare(file_name):
     word_stop = ["a", "à", "á", "ạ", "ả", "ã",
         "ào", "ạ", "ai", "alô", "ào", "ạ",
@@ -436,9 +431,6 @@ def prepare(file_name):
     print(f"✅ Ma trận TF-IDF đã tạo: **{tfidf_matrix.shape}**")
     name = file_name.split('.')[0]
     save_index(vectorizer, tfidf_matrix, chunks, name)
-
-# prepare("NghiDinhThue.txt")
-
 
 def bulk_prepare_and_index(directory_path, index_prefix="law_engine_full"):
     all_chunks = []

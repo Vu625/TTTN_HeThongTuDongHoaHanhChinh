@@ -1,7 +1,6 @@
 import streamlit as st
 from services.auth_service import check_role, logout
 from services.ocr_service import save_uploaded_file
-from services.rag_engine import generate_answer
 from services.data_viz_service import load_forms, load_applications, save_applications, get_workflow_for_procedure, get_name_form
 from datetime import datetime
 import uuid

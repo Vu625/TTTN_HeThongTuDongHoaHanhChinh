@@ -3,7 +3,6 @@ def submit_application():
 def get_application_status():
     pass
 #logic gán cán bộ.
-
 import streamlit as st
 from services.ocr_service import extract_text, ocr_cccd , ocr_gplx
 from pathlib import Path
@@ -11,7 +10,6 @@ import datetime
 from services.data_viz_service import save_applications
 
 # ========== Các hành động khả dụng ==========
-import streamlit as st
 # Khởi tạo trạng thái nếu chưa tồn tại
 
 

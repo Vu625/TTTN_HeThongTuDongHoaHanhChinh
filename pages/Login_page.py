@@ -6,7 +6,7 @@ users = load_users()
 st.set_page_config(page_title="Đăng nhập - VNeID", layout="centered")
 st.markdown("<h2 style='text-align:center; color:#0056A1;'>🔐 ĐĂNG NHẬP VNeID</h2>", unsafe_allow_html=True)
 
-user_id = st.text_input("🪪 Số định danh cá nhân / CCCD", max_chars=12)
+user_id = st.text_input("💳 Số định danh cá nhân / CCCD", max_chars=12)
 password = st.text_input("🔑 Mật khẩu", type="password")
 login_btn = st.button("✅ Đăng nhập")
 
