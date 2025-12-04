@@ -4,9 +4,10 @@ def get_application_status():
     pass
 #logic gán cán bộ.
 import streamlit as st
-from services.ocr_service import extract_text, ocr_cccd , ocr_gplx
+from services.ocr_service import extract_text, ocr_cccd , ocr_gplx , read_text_from_pdf
 from pathlib import Path
 import datetime
+import base64
 from services.data_viz_service import save_applications
 
 # ========== Các hành động khả dụng ==========
@@ -40,25 +41,29 @@ def basic_check(app):
             if p.suffix.lower() in [".png", ".jpg", ".jpeg"]:
                 st.image(str(p), caption=p.name, width=350)
 
-            # Hiển thị PDF
             elif p.suffix.lower() == ".pdf":
                 st.markdown("#### 📑 Xem file PDF:")
                 try:
-                    st.pdf(str(p))  # Streamlit >= 1.32
+                    # CÁCH 1: Dùng st.pdf (Yêu cầu Streamlit >= 1.32)
+                    st.pdf(str(p))
                 except:
-                    # fallback nếu phiên bản st.pdf() không khả dụng
-                    st.markdown(
-                        f"""
-                            <iframe src="{str(p)}" width="100%" height="600px">
-                            </iframe>
-                            """,
-                        unsafe_allow_html=True
-                    )
+                    # CÁCH 2: Fallback bằng iframe + base64 (Đáng tin cậy cho file cục bộ)
+                    try:
+                        with open(p, "rb") as f:
+                            base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+
+                        pdf_display = f"""
+                                        <iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600px" type="application/pdf">
+                                        </iframe>
+                                        """
+                        st.markdown(pdf_display, unsafe_allow_html=True)
+                    except Exception as e:
+                        st.warning(f"Không thể nhúng PDF. Vui lòng cập nhật Streamlit. Chi tiết lỗi: {e}")
 
             else:
                 st.info(f"Không thể xem trực tiếp file: {p.suffix}")
 
-            st.divider()
+            # st.divider()
 
     st.markdown("### 📌 Các thông tin công dân đã điền:")
     for item in app['form_data']:
@@ -146,10 +151,21 @@ def receive_application(app):
     st.info("📥 Hồ sơ đã được tiếp nhận. Không có hành động tự động.")
     return app
 
+
 def extract_text_action_CCCD(app):
-    st.subheader("🔍 OCR - Trích xuất thông tin từ ảnh")
+    st.subheader("🔍 OCR & Trích xuất văn bản từ tài liệu")
+    st.divider()
+
+    # Khởi tạo Session State nếu chưa có
+    if 'ocr_data_raw' not in st.session_state:
+        st.session_state.ocr_data_raw = None
+    if 'current_file_key' not in st.session_state:
+        st.session_state.current_file_key = None
+    if 'action_type' not in st.session_state:
+        st.session_state.action_type = None
+
     if "documents" not in app or not app["documents"]:
-        st.warning("Không có file để chạy OCR.")
+        st.warning("Không có file để chạy xử lý.")
         return app
 
     if "ocr_texts" not in app:
@@ -157,55 +173,110 @@ def extract_text_action_CCCD(app):
 
     for doc_path in app["documents"]:
         path = Path(doc_path)
+        file_key = str(path.name)
+
+        st.markdown(f"### ➡️ {path.name}")
+
         if not path.exists():
-            st.error(f"Không tìm thấy file: {path}")
+            st.error(f"⚠️ File không tìm thấy: {path}")
+            st.divider()
             continue
 
-        st.image(str(path), caption=path.name, width=350)
-        if 'ocr_data_raw' not in st.session_state:
-            st.session_state.ocr_data_raw = None
-        if 'ocr_key' not in st.session_state:
-            st.session_state.ocr_key = None
-            # Logic KÍCH HOẠT OCR (Chỉ lưu kết quả vào state)
-        if st.button(f"Lấy thông tin bằng OCR cho {path.name}", key=path.name):
-            text = ocr_cccd(path)
-            st.session_state.ocr_data_raw = text["data"]  # Lưu kết quả OCR vào state
-            st.session_state.ocr_key = path.name  # Lưu key file đang được OCR
-            st.success(f"✅ Đã trích xuất nội dung từ {path.name}")
+        is_image = path.suffix.lower() in [".png", ".jpg", ".jpeg"]
+        is_pdf = path.suffix.lower() == ".pdf"
 
-        # Logic HIỂN THỊ INPUT (Luôn chạy, chỉ kiểm tra state)
-        # Chỉ hiển thị các ô input nếu có dữ liệu OCR cho file hiện tại
-        if st.session_state.ocr_data_raw and st.session_state.ocr_key == path.name:
+        # --- PHẦN 1: KÍCH HOẠT ACTION (OCR/READ PDF) ---
 
-            # 1. Hiển thị Text Area (Tùy chọn)
-            # st.text_area(f"Nội dung OCR ({path.name})", str(st.session_state.ocr_data_raw), height=150)
+        # Xử lý Hình ảnh (Hiển thị ảnh và nút OCR)
+        if is_image:
+            st.image(str(path), caption=path.name, width=350)
+            ocr_button_label = f"✨ Quét OCR cho **Hình ảnh**"
 
-            # 2. Tạo các ô Input Sửa lỗi (Luôn render khi có dữ liệu)
+            if st.button(ocr_button_label, key=f"ocr_btn_{file_key}"):
+                with st.spinner(f"Đang chạy OCR cho ảnh {path.name}..."):
+                    raw_data = ocr_cccd(path)
+                    st.session_state.ocr_data_raw = raw_data
+                    st.session_state.current_file_key = file_key
+                    st.session_state.action_type = "image_ocr"
+                    st.success(f"✅ Đã trích xuất nội dung CCCD từ {path.name}")
+                st.rerun()
+
+        # Xử lý PDF (Không hiển thị ảnh, chỉ hiển thị thông báo và nút)
+        elif is_pdf:
+            st.info("File là PDF. Vui lòng nhấn nút để đọc nội dung văn bản.")
+            ocr_button_label = f"📖 Quét văn bản cho **PDF**"
+
+            if st.button(ocr_button_label, key=f"ocr_btn_{file_key}"):
+                with st.spinner(f"Đang đọc văn bản từ PDF {path.name}..."):
+                    raw_data = read_text_from_pdf(path)
+                    st.session_state.ocr_data_raw = raw_data
+                    st.session_state.current_file_key = file_key
+                    st.session_state.action_type = "pdf_text"
+                    st.success(f"✅ Đã đọc toàn bộ văn bản từ {path.name}")
+                st.rerun()
+
+        else:
+            st.warning(f"Định dạng file {path.suffix} không được hỗ trợ để xử lý.")
+
+        # --- PHẦN 2: HIỂN THỊ KẾT QUẢ VÀ SỬA LỖI ---
+
+        # Chỉ hiển thị kết quả nếu file hiện tại trùng với file vừa được xử lý
+        if st.session_state.current_file_key == file_key:
             st.markdown("---")
-            st.subheader("📝 Sửa lỗi Trích xuất")
 
-            text_fix = {}
-            for field in st.session_state.ocr_data_raw:
-                # Tạo key duy nhất cho ô input
-                input_key = f"input_{st.session_state.ocr_key}_{field['name']}"
+            # 2.1 Hiển thị và Sửa lỗi cho IMAGE OCR (CCCD - Dạng trường dữ liệu)
+            if st.session_state.action_type == "image_ocr" and st.session_state.ocr_data_raw and "data" in st.session_state.ocr_data_raw:
+                st.subheader("📝 Sửa lỗi Trích xuất CCCD (Hình ảnh)")
 
-                # st.text_input được gọi. Streamlit tự động duy trì giá trị qua session_state[input_key]
-                st.text_input(
-                    label=field["label"],
-                    value=field["text"],
-                    key=input_key  # Key duy nhất bắt buộc
+                text_fix = {}
+                data_fields = st.session_state.ocr_data_raw.get("data", [])
+
+                for field in data_fields:
+                    input_key = f"input_fix_{file_key}_{field['name']}"
+
+                    st.text_input(
+                        label=field["label"],
+                        value=field["text"],
+                        key=input_key
+                    )
+                    text_fix[field["name"]] = st.session_state[input_key]
+
+                if st.button("💾 Lưu Nội Dung OCR Đã Sửa", key=f"save_ocr_btn_{file_key}"):
+                    app["ocr_texts"][file_key] = text_fix
+                    st.success(f"💾 Đã lưu nội dung CCCD đã sửa cho {file_key}.")
+
+            # 2.2 Hiển thị và Lưu kết quả READ TEXT từ PDF (Dạng khối văn bản)
+            elif st.session_state.action_type == "pdf_text" and st.session_state.ocr_data_raw and "text_by_page" in st.session_state.ocr_data_raw:
+                st.subheader("📖 Nội dung văn bản trích xuất từ PDF")
+
+                all_text = ""
+                text_by_page = st.session_state.ocr_data_raw["text_by_page"]
+
+                # Gộp nội dung từ các trang
+                for page_index, text in enumerate(text_by_page):
+                    page_num = page_index + 1
+                    all_text += f"\n\n=== Trang {page_num} ===\n"
+                    all_text += text
+
+                # Hiển thị text_area
+                pdf_text_key = f"pdf_text_area_{file_key}"
+                st.text_area(
+                    "Toàn bộ văn bản trích xuất (Có thể kiểm tra và sửa lỗi)",
+                    value=all_text.strip(),
+                    height=400,
+                    key=pdf_text_key
                 )
 
-                # Lấy giá trị hiện tại (đã sửa hoặc gốc)
-                text_fix[field["name"]] = st.session_state[input_key]
+                if st.button("💾 Lưu Nội Dung Text PDF", key=f"save_pdf_text_btn_{file_key}"):
+                    # Lưu nội dung đã sửa/kiểm tra từ text_area
+                    app["ocr_texts"][file_key] = {
+                        "all_text": st.session_state[pdf_text_key],
+                        "source_type": "PDF_Text"
+                    }
+                    st.success(f"💾 Đã lưu nội dung văn bản từ PDF cho {file_key}.")
 
-            # 3. Nút Lưu (Áp dụng các giá trị đã sửa)
-            if st.button("Lưu Nội Dung Quét OCR", key=f"save_btn_{path.name}"):
-                app["ocr_texts"][path.name] = text_fix
-                st.success(f"💾 Đã lưu nội dung đã sửa cho {path.name}")
+            st.divider()
 
-            # Xóa trạng thái nếu cần chuyển sang file khác
-            # ...
     return app
 
 def approve_result(app):
@@ -234,10 +305,22 @@ def approve_result(app):
 
     return app
 
+
 def extract_text_action_GPLX(app):
-    st.subheader("🔍 OCR - Trích xuất thông tin từ ảnh")
+    st.subheader("🔍 OCR & Trích xuất văn bản từ tài liệu")
+    st.divider()
+
+    # --- KHỞI TẠO SESSION STATE ---
+    # Dùng key riêng biệt để tránh xung đột
+    if 'gplx_ocr_data_raw' not in st.session_state:
+        st.session_state.gplx_ocr_data_raw = None
+    if 'gplx_current_file_key' not in st.session_state:
+        st.session_state.gplx_current_file_key = None
+    if 'gplx_action_type' not in st.session_state:
+        st.session_state.gplx_action_type = None
+
     if "documents" not in app or not app["documents"]:
-        st.warning("Không có file để chạy OCR.")
+        st.warning("Không có file để chạy xử lý.")
         return app
 
     if "ocr_texts" not in app:
@@ -245,55 +328,109 @@ def extract_text_action_GPLX(app):
 
     for doc_path in app["documents"]:
         path = Path(doc_path)
+        file_key = str(path.name)
+
+        st.markdown(f"### ➡️ {path.name}")
+
         if not path.exists():
-            st.error(f"Không tìm thấy file: {path}")
+            st.error(f"⚠️ File không tìm thấy: {path}")
+            st.divider()
             continue
 
-        st.image(str(path), caption=path.name, width=350)
-        if 'ocr_data_raw' not in st.session_state:
-            st.session_state.ocr_data_raw = None
-        if 'ocr_key' not in st.session_state:
-            st.session_state.ocr_key = None
-            # Logic KÍCH HOẠT OCR (Chỉ lưu kết quả vào state)
-        if st.button(f"Chạy OCR cho {path.name}", key=path.name):
-            text = ocr_gplx(path)
-            st.session_state.ocr_data_raw = text["data"]  # Lưu kết quả OCR vào state
-            st.session_state.ocr_key = path.name  # Lưu key file đang được OCR
-            st.success(f"✅ Đã trích xuất nội dung từ {path.name}")
+        is_image = path.suffix.lower() in [".png", ".jpg", ".jpeg"]
+        is_pdf = path.suffix.lower() == ".pdf"
 
-        # Logic HIỂN THỊ INPUT (Luôn chạy, chỉ kiểm tra state)
-        # Chỉ hiển thị các ô input nếu có dữ liệu OCR cho file hiện tại
-        if st.session_state.ocr_data_raw and st.session_state.ocr_key == path.name:
+        # --- PHẦN 1: KÍCH HOẠT ACTION (OCR/READ PDF) ---
 
-            # 1. Hiển thị Text Area (Tùy chọn)
-            # st.text_area(f"Nội dung OCR ({path.name})", str(st.session_state.ocr_data_raw), height=150)
+        # Xử lý Hình ảnh (OCR cho GPLX)
+        if is_image:
+            # CHỈ GỌI st.image() CHO FILE HÌNH ẢNH
+            st.image(str(path), caption=path.name, width=350)
+            ocr_button_label = f"✨ Quét OCR cho **Hình ảnh** GPLX"
 
-            # 2. Tạo các ô Input Sửa lỗi (Luôn render khi có dữ liệu)
+            if st.button(ocr_button_label, key=f"ocr_btn_{file_key}"):
+                with st.spinner(f"Đang chạy OCR cho ảnh {path.name}..."):
+                    raw_data = ocr_gplx(path)
+                    st.session_state.gplx_ocr_data_raw = raw_data
+                    st.session_state.gplx_current_file_key = file_key
+                    st.session_state.gplx_action_type = "image_ocr"
+                    st.success(f"✅ Đã trích xuất nội dung GPLX từ {path.name}")
+                st.rerun()
+
+        # Xử lý PDF (Đọc văn bản)
+        elif is_pdf:
+            st.info("File là PDF. Vui lòng nhấn nút để đọc nội dung văn bản.")
+            ocr_button_label = f"📖 Quét văn bản cho **PDF**"
+
+            if st.button(ocr_button_label, key=f"ocr_btn_{file_key}"):
+                with st.spinner(f"Đang đọc văn bản từ PDF {path.name}..."):
+                    raw_data = read_text_from_pdf(path)
+                    st.session_state.gplx_ocr_data_raw = raw_data
+                    st.session_state.gplx_current_file_key = file_key
+                    st.session_state.gplx_action_type = "pdf_text"
+                    st.success(f"✅ Đã đọc toàn bộ văn bản từ {path.name}")
+                st.rerun()
+
+        else:
+            st.warning(f"Định dạng file {path.suffix} không được hỗ trợ để xử lý.")
+
+        # --- PHẦN 2: HIỂN THỊ KẾT QUẢ VÀ SỬA LỖI ---
+
+        # Chỉ hiển thị kết quả nếu file hiện tại trùng với file vừa được xử lý
+        if st.session_state.gplx_current_file_key == file_key:
             st.markdown("---")
-            st.subheader("📝 Sửa lỗi Trích xuất")
 
-            text_fix = {}
-            for field in st.session_state.ocr_data_raw:
-                # Tạo key duy nhất cho ô input
-                input_key = f"input_{st.session_state.ocr_key}_{field['name']}"
+            # 2.1 Hiển thị và Sửa lỗi cho IMAGE OCR (GPLX - Dạng trường dữ liệu)
+            if st.session_state.gplx_action_type == "image_ocr" and st.session_state.gplx_ocr_data_raw and "data" in st.session_state.gplx_ocr_data_raw:
+                st.subheader("📝 Sửa lỗi Trích xuất GPLX (Hình ảnh)")
 
-                # st.text_input được gọi. Streamlit tự động duy trì giá trị qua session_state[input_key]
-                st.text_input(
-                    label=field["label"],
-                    value=field["text"],
-                    key=input_key  # Key duy nhất bắt buộc
+                text_fix = {}
+                data_fields = st.session_state.gplx_ocr_data_raw.get("data", [])
+
+                for field in data_fields:
+                    input_key = f"input_fix_{file_key}_{field['name']}"
+
+                    # st.text_input được gọi với key duy nhất
+                    st.text_input(
+                        label=field["label"],
+                        value=field["text"],
+                        key=input_key
+                    )
+                    text_fix[field["name"]] = st.session_state[input_key]
+
+                if st.button("💾 Lưu Nội Dung OCR Đã Sửa", key=f"save_ocr_btn_{file_key}"):
+                    app["ocr_texts"][file_key] = text_fix
+                    st.success(f"💾 Đã lưu nội dung GPLX đã sửa cho {file_key}.")
+
+            # 2.2 Hiển thị và Lưu kết quả READ TEXT từ PDF (Dạng khối văn bản)
+            elif st.session_state.gplx_action_type == "pdf_text" and st.session_state.gplx_ocr_data_raw and "text_by_page" in st.session_state.gplx_ocr_data_raw:
+                st.subheader("📖 Nội dung văn bản trích xuất từ PDF")
+
+                all_text = ""
+                text_by_page = st.session_state.gplx_ocr_data_raw["text_by_page"]
+
+                for page_index, text in enumerate(text_by_page):
+                    page_num = page_index + 1
+                    all_text += f"\n\n=== Trang {page_num} ===\n"
+                    all_text += text
+
+                pdf_text_key = f"pdf_text_area_{file_key}"
+                st.text_area(
+                    "Toàn bộ văn bản trích xuất (Có thể kiểm tra và sửa lỗi)",
+                    value=all_text.strip(),
+                    height=400,
+                    key=pdf_text_key
                 )
 
-                # Lấy giá trị hiện tại (đã sửa hoặc gốc)
-                text_fix[field["name"]] = st.session_state[input_key]
+                if st.button("💾 Lưu Nội Dung Text PDF", key=f"save_pdf_text_btn_{file_key}"):
+                    app["ocr_texts"][file_key] = {
+                        "all_text": st.session_state[pdf_text_key],
+                        "source_type": "PDF_Text"
+                    }
+                    st.success(f"💾 Đã lưu nội dung văn bản từ PDF cho {file_key}.")
 
-            # 3. Nút Lưu (Áp dụng các giá trị đã sửa)
-            if st.button("Lưu Nội Dung Quét OCR", key=f"save_btn_{path.name}"):
-                app["ocr_texts"][path.name] = text_fix
-                st.success(f"💾 Đã lưu nội dung đã sửa cho {path.name}")
+            st.divider()
 
-            # Xóa trạng thái nếu cần chuyển sang file khác
-            # ...
     return app
 
 # ========== Bộ ánh xạ hàm ==========
