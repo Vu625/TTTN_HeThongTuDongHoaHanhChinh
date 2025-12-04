@@ -60,11 +60,15 @@ def split_into_chunks(text):
 
     # 1) Tách tên Nghị định (giả sử dòng đầu hoặc có "Nghị định")
     match_nghidinh = re.search(r'(Chính phủ ban hành .*?)(\n|$)', text, re.IGNORECASE)
-    nghidinh_title = ""
     if match_nghidinh:
-        nghidinh_title = match_nghidinh.group(1).strip()
-        # Loại bỏ phần tiêu đề ra khỏi text
-        text = text[match_nghidinh.end():].strip()
+        full_match = match_nghidinh.group(1)
+        nghidinh_title = full_match.replace("Chính phủ ban hành ", "", 1).strip()
+    else:
+        nghidinh_title = "Không tìm thấy"
+    # if match_nghidinh:
+    #     nghidinh_title = match_nghidinh.group(1).strip()
+    #     # Loại bỏ phần tiêu đề ra khỏi text
+    #     text = text[match_nghidinh.end():].strip()
 
     # 2) Tách theo Chương
     chuong_pattern = r'(Chương\s+\w+.*?)(?=\nChương|\Z)'
