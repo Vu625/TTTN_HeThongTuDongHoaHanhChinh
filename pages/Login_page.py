@@ -3,8 +3,17 @@ from services.auth_service import load_users,authenticate_user,login_success
 users = load_users()
 
 # ---------- GIAO DIỆN ----------
-st.set_page_config(page_title="Đăng nhập - VNeID", layout="centered")
-st.markdown("<h2 style='text-align:center; color:#0056A1;'>🔐 ĐĂNG NHẬP VNeID</h2>", unsafe_allow_html=True)
+col1, col2 = st.columns(2)
+
+with col1:
+    login_btn = st.button("✅ Đăng nhập", type="primary", use_container_width=True)
+
+with col2:
+    # Nút này sẽ chuyển hướng sang file Register.py bạn vừa sửa
+    register_btn = st.button("📝 Đăng ký tài khoản", use_container_width=True)
+
+if register_btn:
+    st.switch_page("pages/Register.py")
 
 user_id = st.text_input("💳 Số định danh cá nhân / CCCD", max_chars=12)
 password = st.text_input("🔑 Mật khẩu", type="password")
