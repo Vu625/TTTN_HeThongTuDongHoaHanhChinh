@@ -38,5 +38,25 @@ if login_btn:
             st.error("Sai CCCD hoặc mật khẩu.")
 
 st.markdown("---")
-st.markdown("[🔄 Quên mật khẩu](#) | [📱 Đăng nhập bằng OTP](#) | [📷 Mã QR](#)")
+col_f1, col_f2, col_f3 = st.columns(3)
+
+with col_f1:
+    # Nút chuyển trang Quên mật khẩu
+    if st.button("🔄 Quên mật khẩu", use_container_width=True):
+        try:
+            st.switch_page("pages/ForgotPassword.py")
+        except Exception:
+            st.error("Chưa tìm thấy file pages/ForgotPassword.py")
+
+with col_f2:
+    # Nút OTP (Chưa phát triển)
+    if st.button("📱 Đăng nhập OTP", use_container_width=True):
+        st.info("Chức năng đang phát triển")
+
+with col_f3:
+    # Nút QR (Chưa phát triển)
+    if st.button("📷 Quét mã QR", use_container_width=True):
+        st.info("Chức năng đang phát triển")
+
+# Dòng cảnh báo cuối cùng
 st.info("⚠️ Không chia sẻ tài khoản hoặc mã OTP cho người khác.")
