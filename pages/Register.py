@@ -3,7 +3,19 @@ import time
 from services.auth_service import load_users, save_users, hash_password
 
 # --- GIAO DIỆN FORM ĐĂNG KÝ ---
-st.subheader("📝 Đăng ký tài khoản Công dân")
+st.subheader("📝 Đăng ký tài khoản")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    login_btn = st.button("✅ Đăng nhập", use_container_width=True)
+
+with col2:
+    # Nút này sẽ chuyển hướng sang file Register.py bạn vừa sửa
+    register_btn = st.button("📝 Đăng ký tài khoản", type="primary", use_container_width=True)
+
+if login_btn:
+    st.switch_page("pages/Login_page.py")
 
 with st.form("register_form", clear_on_submit=True):
     col1, col2 = st.columns(2)
@@ -58,5 +70,5 @@ with st.form("register_form", clear_on_submit=True):
             st.switch_page("pages/Login_page.py")
 
 # Nút quay lại thủ công nếu không muốn đăng ký
-if st.button("⬅️ Quay lại Đăng nhập"):
-    st.switch_page("pages/Login_page.py")
+# if st.button("⬅️ Quay lại Đăng nhập"):
+#     st.switch_page("pages/Login_page.py")
