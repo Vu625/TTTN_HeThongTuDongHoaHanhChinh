@@ -19,25 +19,25 @@ SUGGESTION_PROMPTS = [
     "Hướng dẫn làm thủ tục hành chính online"
 ]
 
-# 1. Khởi tạo trạng thái (Nếu chưa có)
-if 'model_choice' not in st.session_state:
-    st.session_state.model_choice = "GEMINI" # Thiết lập mặc định là PhoGPT
-
-# 2. Hàm chuyển đổi mô hình
-def toggle_model():
-    if st.session_state.model_choice == "LMSTUDIO":
-        st.session_state.model_choice = "GEMINI"
-    else:
-        st.session_state.model_choice = "LMSTUDIO"
-
-# 3. Giao diện người dùng
-# st.title("RAG Chatbot: So sánh Mô hình")
-if st.session_state.role == "admin":
-# Nút chuyển đổi mô hình
-    current_model = st.session_state.model_choice
-    button_label = f"Chuyển sang {'GEMINI' if current_model == 'LMSTUDIO' else 'LMSTUDIO'}"
-    st.button(button_label, on_click=toggle_model)
-    st.subheader(f"Mô hình đang sử dụng: {current_model}")
+# # 1. Khởi tạo trạng thái (Nếu chưa có)
+# if 'model_choice' not in st.session_state:
+#     st.session_state.model_choice = "GEMINI" # Thiết lập mặc định là PhoGPT
+#
+# # 2. Hàm chuyển đổi mô hình
+# def toggle_model():
+#     if st.session_state.model_choice == "LMSTUDIO":
+#         st.session_state.model_choice = "GEMINI"
+#     else:
+#         st.session_state.model_choice = "LMSTUDIO"
+#
+# # 3. Giao diện người dùng
+# # st.title("RAG Chatbot: So sánh Mô hình")
+# if st.session_state.role == "admin":
+# # Nút chuyển đổi mô hình
+#     current_model = st.session_state.model_choice
+#     button_label = f"Chuyển sang {'GEMINI' if current_model == 'LMSTUDIO' else 'LMSTUDIO'}"
+#     st.button(button_label, on_click=toggle_model)
+#     st.subheader(f"Mô hình đang sử dụng: {current_model}")
 
 # --- Hàm Callback và Logic ---
 def on_suggest_click(prompt):
@@ -56,7 +56,7 @@ def handle_prompt(prompt):
     # 2. Hiển thị spinner và gọi hàm LM Studio
     with st.spinner("Trợ lý đang phản hồi..."):
         # Đảm bảo hàm ask_lmstudio chỉ trả về chuỗi, không print ra terminal
-        bot_response = ask_rag(prompt, model_choice=st.session_state.model_choice)
+        bot_response = ask_rag(prompt)
 
     # 3. Thêm phản hồi của bot vào state
     st.session_state.messages.append(("bot", bot_response))
