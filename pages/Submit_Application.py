@@ -4,6 +4,7 @@ from services.ocr_service import save_uploaded_file
 from services.data_viz_service import load_forms, load_applications, save_applications, get_workflow_for_procedure, get_name_form
 from datetime import datetime
 import uuid
+import time
 from services.layout import load_common_layout, display_back_button
 from services.auth_service import check_role
 check_role("citizen")
@@ -67,3 +68,5 @@ if selection:
             apps.append(new_app)
             save_applications(apps)
             st.success("🎉 Gửi hồ sơ thành công!")
+            time.sleep(2)
+            st.switch_page("pages/Citizen_Home.py")
