@@ -426,6 +426,179 @@
 #     print(f"🎉 Hoàn tất Indexing. Đã lưu 3 file index với prefix: {index_prefix}")
 # # word_stop = ["là","thì","của"]
 # # bulk_prepare_and_index(BASE_DIR / "data/db/law_texts", stop_words=word_stop)
+# import os
+# import numpy as np
+# import re
+# from pathlib import Path
+# import pickle
+# from sklearn.feature_extraction.text import TfidfVectorizer
+# from sklearn.metrics.pairwise import cosine_similarity
+# from scipy.sparse import save_npz, load_npz
+#
+# # 🚨 SỬ DỤNG MÔ HÌNH CỤC BỘ (SBERT) 🚨
+# from sentence_transformers import SentenceTransformer
+#
+# # ==========================================
+# # 1) SBERT Setup (Chạy Cục bộ - Loại bỏ toàn bộ API Key)
+# # ==========================================
+# # Mô hình SBERT phổ biến cho đa ngôn ngữ (all-MiniLM-L6-v2)
+# EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+#
+# # Khởi tạo mô hình (Tải xuống nếu chưa có)
+# try:
+#     # Khởi tạo SBERT Model
+#     sbert_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+#     print(f"✅ Đã khởi tạo SBERT Model: {EMBEDDING_MODEL_NAME}")
+# except Exception as e:
+#     print(f"❌ Lỗi khởi tạo SBERT: {e}. Đảm bảo đã cài đặt torch và sentence-transformers.")
+#     sbert_model = None
+#
+# # ==========================================
+# # 2) Đọc file
+# # ==========================================
+# def read_document(path):
+#     with open(path, "r", encoding="utf-8") as f:
+#         return f.read()
+#
+#
+# # ==========================================
+# # 3) Tách đoạn
+# # ==========================================
+# def split_into_chunks(text, max_len=500, overlap=100):
+#     """
+#     Tách đoạn văn bản có hỗ trợ overlap.
+#     - max_len: độ dài tối đa của 1 chunk
+#     - overlap: số ký tự của chunk trước được giữ lại để ghép sang chunk sau
+#     """
+#     sentences = re.split(r"(?<=[.!?])\s+", text)
+#     chunks = []
+#     current = ""
+#
+#     for s in sentences:
+#         if len(current) + len(s) <= max_len:
+#             current += " " + s
+#         else:
+#             # Lưu chunk hiện tại
+#             chunks.append(current.strip())
+#
+#             # ⚡ Tạo overlap: lấy phần cuối của chunk trước
+#             if overlap > 0:
+#                 tail = current[-overlap:]
+#             else:
+#                 tail = ""
+#
+#             # Chunk mới bắt đầu bằng phần tail overlap + câu hiện tại
+#             current = tail + " " + s
+#
+#     # Lưu chunk cuối
+#     if current.strip():
+#         chunks.append(current.strip())
+#
+#     return chunks
+#
+#
+# # ==========================================
+# # 4) Embedding (SBERT Cục bộ)
+# # ==========================================
+# def embed_batch_texts_gemini(texts):
+#     """
+#     Tạo embeddings cho một danh sách văn bản bằng SBERT (Chạy Cục bộ).
+#     Giữ tên hàm 'embed_batch_texts_gemini' để tương thích với hàm gọi ở dưới.
+#     """
+#     if sbert_model is None:
+#         raise ConnectionError("❌ Mô hình SBERT chưa được khởi tạo. Không thể tạo embeddings.")
+#
+#     try:
+#         # SBERT tự động xử lý batching và trả về NumPy array
+#         embeddings = sbert_model.encode(
+#             texts,
+#             convert_to_tensor=False,
+#             show_progress_bar=True
+#         )
+#
+#         # Trả về list các np.array để tương thích với np.vstack sau này
+#         return [np.array(v, dtype=np.float32) for v in embeddings]
+#
+#     except Exception as e:
+#         print(f"❌ Lỗi khi tạo SBERT embeddings: {e}")
+#         raise ConnectionError(f"❌ Dừng indexing do lỗi SBERT: {e}")
+#
+#
+# # ==========================================
+# # 5) Tạo folder nếu chưa có
+# # ==========================================
+# def ensure_dir(path):
+#     if not os.path.exists(path):
+#         os.makedirs(path)
+#
+#
+# # ==========================================
+# # 6) Build & save index
+# # ==========================================
+# def prepare_index_for_folder(folder_path, index_prefix):
+#     print("📌 Đang load thư mục:", folder_path)
+#
+#     all_chunk_objects = []  # <-- SỬA TÊN BIẾN: Lưu toàn bộ object (content + metadata)
+#     all_content_texts = []  # <-- MỚI: Chỉ lưu nội dung để embedding và TF-IDF
+#     file_map = []
+#
+#     # Giả định BASE_DIR là thư mục gốc của dự án
+#     BASE_DIR = Path(__file__).resolve().parent.parent
+#
+#     for file in (BASE_DIR / folder_path).glob("*.txt"):
+#         text = read_document(file)
+#         chunks = split_into_chunks(text)  # Giả định hàm này trả về List[Dict]
+#
+#         for ck in chunks:
+#             # 1. Lưu toàn bộ chunk object (có metadata)
+#             all_chunk_objects.append(ck)
+#             # 2. Chỉ lấy nội dung (content) để tạo vector
+#             all_content_texts.append(ck['content'])
+#
+#             file_map.append(str(file))  # Lưu file map
+#
+#     print(f"📌 Tổng số đoạn văn bản: {len(all_chunk_objects)}")
+#
+#     # ---------------- TF-IDF ----------------
+#     vectorizer = TfidfVectorizer()
+#     tfidf_matrix = vectorizer.fit_transform(all_content_texts)  # Dùng all_content_texts
+#
+#     ensure_dir(BASE_DIR / "data/index")
+#
+#     save_npz(BASE_DIR / f"data/index/{index_prefix}_tfidf.npz", tfidf_matrix)
+#
+#     with open(BASE_DIR / f"data/index/{index_prefix}_vectorizer.pkl", "wb") as f:
+#         pickle.dump(vectorizer, f)
+#
+#     # ---------------- SBERT Embedding ----------------
+#     print("🔮 Đang tạo SBERT embeddings…")
+#
+#     embeddings = embed_batch_texts_gemini(all_content_texts)  # Dùng all_content_texts
+#     embeddings = np.vstack(embeddings)
+#
+#     np.save(BASE_DIR / f"data/index/{index_prefix}_embeddings.npy", embeddings)
+#
+#     # LƯU CHUNKS CÓ METADATA
+#     with open(BASE_DIR / f"data/index/{index_prefix}_chunks.pkl", "wb") as f:
+#         pickle.dump(all_chunk_objects, f)  # <-- ĐÃ SỬA: Lưu object có metadata
+#
+#     with open(BASE_DIR / f"data/index/{index_prefix}_filemap.pkl", "wb") as f:
+#         pickle.dump(file_map, f)
+#
+#     print("🎉 DONE! Index đã tạo xong.")
+#
+#
+# # ==========================================
+# # 7) Public API
+# # ==========================================
+# def bulk_prepare_and_index(folder, index_prefix="law_engine"):
+#     prepare_index_for_folder(folder, index_prefix)
+#
+#
+# if __name__ == "__main__":
+#     bulk_prepare_and_index("data/db/law_texts", index_prefix="law_engine_full")
+
+
 import os
 import numpy as np
 import re
@@ -464,22 +637,47 @@ def read_document(path):
 # ==========================================
 # 3) Tách đoạn
 # ==========================================
-def split_into_chunks(text, max_len=500):
+def split_into_chunks(text, max_len=500, overlap=100):
     sentences = re.split(r"(?<=[.!?])\s+", text)
     chunks = []
     current = ""
 
     for s in sentences:
-        if len(current) + len(s) < max_len:
+        if len(current) + len(s) <= max_len:
             current += " " + s
         else:
-            chunks.append(current.strip())
-            current = s
+            chunks.append({
+                "content": current.strip(),
+                "metadata": {
+                    "Decree": "N/A",
+                    "Chapter": "N/A",
+                    "article_number": "N/A",
+                    "article": "N/A",
+                    "Clause": "N/A"
+                }
+            })
+
+            if overlap > 0:
+                tail = current[-overlap:]
+            else:
+                tail = ""
+
+            current = tail + " " + s
 
     if current.strip():
-        chunks.append(current.strip())
+        chunks.append({
+            "content": current.strip(),
+            "metadata": {
+                "Decree": "N/A",
+                "Chapter": "N/A",
+                "article_number": "N/A",
+                "article": "N/A",
+                "Clause": "N/A"
+            }
+        })
 
     return chunks
+
 
 
 # ==========================================
@@ -582,6 +780,3 @@ def bulk_prepare_and_index(folder, index_prefix="law_engine"):
 
 if __name__ == "__main__":
     bulk_prepare_and_index("data/db/law_texts", index_prefix="law_engine_full")
-
-
-
