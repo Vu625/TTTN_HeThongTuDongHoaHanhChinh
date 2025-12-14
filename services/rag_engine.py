@@ -610,24 +610,257 @@ from scipy.sparse import save_npz, load_npz
 
 # 🚨 SỬ DỤNG MÔ HÌNH CỤC BỘ (SBERT) 🚨
 from sentence_transformers import SentenceTransformer
+# # ===============================
+# # Pinecone Setup
+# # ===============================
+# from pinecone import Pinecone
+# import os
+#
+# PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")  # set trong .env
+# PINECONE_INDEX_NAME = "law-engine-index"
+#
+# pc = Pinecone(api_key=PINECONE_API_KEY)
+#
+# # Tạo index nếu chưa tồn tại
+# if PINECONE_INDEX_NAME not in pc.list_indexes().names():
+#     pc.create_index(
+#         name=PINECONE_INDEX_NAME,
+#         dimension=384,  # all-MiniLM-L6-v2 = 384
+#         metric="cosine"
+#     )
+#
+# pinecone_index = pc.Index(PINECONE_INDEX_NAME)
+#
+# # ==========================================
+# # 1) SBERT Setup (Chạy Cục bộ - )
+# # ==========================================
+# # Mô hình SBERT phổ biến cho đa ngôn ngữ (all-MiniLM-L6-v2)
+# EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+#
+# # Khởi tạo mô hình (Tải xuống nếu chưa có)
+# try:
+#     # Khởi tạo SBERT Model
+#     sbert_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+#     print(f"✅ Đã khởi tạo SBERT Model: {EMBEDDING_MODEL_NAME}")
+# except Exception as e:
+#     print(f"❌ Lỗi khởi tạo SBERT: {e}. Đảm bảo đã cài đặt torch và sentence-transformers.")
+#     sbert_model = None
+#
+# # ==========================================
+# # 2) Đọc file
+# # ==========================================
+# def read_document(path):
+#     with open(path, "r", encoding="utf-8") as f:
+#         return f.read()
+#
+#
+# # ==========================================
+# # 3) Tách đoạn
+# # ==========================================
+# def split_into_chunks(text, max_len=500, overlap=100):
+#     sentences = re.split(r"(?<=[.!?])\s+", text)
+#     chunks = []
+#     current = ""
+#
+#     for s in sentences:
+#         if len(current) + len(s) <= max_len:
+#             current += " " + s
+#         else:
+#             chunks.append({
+#                 "content": current.strip(),
+#                 "metadata": {
+#                     "Decree": "N/A",
+#                     "Chapter": "N/A",
+#                     "article_number": "N/A",
+#                     "article": "N/A",
+#                     "Clause": "N/A"
+#                 }
+#             })
+#
+#             if overlap > 0:
+#                 tail = current[-overlap:]
+#             else:
+#                 tail = ""
+#
+#             current = tail + " " + s
+#
+#     if current.strip():
+#         chunks.append({
+#             "content": current.strip(),
+#             "metadata": {
+#                 "Decree": "N/A",
+#                 "Chapter": "N/A",
+#                 "article_number": "N/A",
+#                 "article": "N/A",
+#                 "Clause": "N/A"
+#             }
+#         })
+#
+#     return chunks
+#
+#
+#
+# # ==========================================
+# # 4) Embedding (SBERT Cục bộ)
+# # ==========================================
+# def embed_batch_texts_gemini(texts):
+#     """
+#     Tạo embeddings cho một danh sách văn bản bằng SBERT (Chạy Cục bộ).
+#     Giữ tên hàm 'embed_batch_texts_gemini' để tương thích với hàm gọi ở dưới.
+#     """
+#     if sbert_model is None:
+#         raise ConnectionError("❌ Mô hình SBERT chưa được khởi tạo. Không thể tạo embeddings.")
+#
+#     try:
+#         # SBERT tự động xử lý batching và trả về NumPy array
+#         embeddings = sbert_model.encode(
+#             texts,
+#             convert_to_tensor=False,
+#             show_progress_bar=True
+#         )
+#
+#         # Trả về list các np.array để tương thích với np.vstack sau này
+#         return [np.array(v, dtype=np.float32) for v in embeddings]
+#
+#     except Exception as e:
+#         print(f"❌ Lỗi khi tạo SBERT embeddings: {e}")
+#         raise ConnectionError(f"❌ Dừng indexing do lỗi SBERT: {e}")
+#
+#
+# # ==========================================
+# # 5) Tạo folder nếu chưa có
+# # ==========================================
+# def ensure_dir(path):
+#     if not os.path.exists(path):
+#         os.makedirs(path)
+#
+#
+# # ==========================================
+# # 6) Build & save index
+# # ==========================================
+# def prepare_index_for_folder(folder_path, index_prefix):
+#     print("📌 Đang load thư mục:", folder_path)
+#
+#     all_chunk_objects = []  # <-- SỬA TÊN BIẾN: Lưu toàn bộ object (content + metadata)
+#     all_content_texts = []  # <-- MỚI: Chỉ lưu nội dung để embedding và TF-IDF
+#     file_map = []
+#
+#     # Giả định BASE_DIR là thư mục gốc của dự án
+#     BASE_DIR = Path(__file__).resolve().parent.parent
+#
+#     for file in (BASE_DIR / folder_path).glob("*.txt"):
+#         text = read_document(file)
+#         chunks = split_into_chunks(text)  # Giả định hàm này trả về List[Dict]
+#
+#         for ck in chunks:
+#             # 1. Lưu toàn bộ chunk object (có metadata)
+#             all_chunk_objects.append(ck)
+#             # 2. Chỉ lấy nội dung (content) để tạo vector
+#             all_content_texts.append(ck['content'])
+#
+#             file_map.append(str(file))  # Lưu file map
+#
+#     print(f"📌 Tổng số đoạn văn bản: {len(all_chunk_objects)}")
+#
+#     # ---------------- TF-IDF ----------------
+#     vectorizer = TfidfVectorizer()
+#     tfidf_matrix = vectorizer.fit_transform(all_content_texts)  # Dùng all_content_texts
+#
+#     ensure_dir(BASE_DIR / "data/index")
+#
+#     save_npz(BASE_DIR / f"data/index/{index_prefix}_tfidf.npz", tfidf_matrix)
+#
+#     with open(BASE_DIR / f"data/index/{index_prefix}_vectorizer.pkl", "wb") as f:
+#         pickle.dump(vectorizer, f)
+#
+#     # ---------------- SBERT Embedding ----------------
+#     print("🔮 Đang tạo SBERT embeddings…")
+#
+#     embeddings = embed_batch_texts_gemini(all_content_texts)  # Dùng all_content_texts
+#     embeddings = np.vstack(embeddings)
+#
+#     np.save(BASE_DIR / f"data/index/{index_prefix}_embeddings.npy", embeddings)
+#
+#     # LƯU CHUNKS CÓ METADATA
+#     with open(BASE_DIR / f"data/index/{index_prefix}_chunks.pkl", "wb") as f:
+#         pickle.dump(all_chunk_objects, f)  # <-- ĐÃ SỬA: Lưu object có metadata
+#
+#     with open(BASE_DIR / f"data/index/{index_prefix}_filemap.pkl", "wb") as f:
+#         pickle.dump(file_map, f)
+#
+#     print("🎉 DONE! Index đã tạo xong.")
+#
+#
+# # ==========================================
+# # 7) Public API
+# # ==========================================
+# def bulk_prepare_and_index(folder, index_prefix="law_engine"):
+#     prepare_index_for_folder(folder, index_prefix)
+#
+#
+# if __name__ == "__main__":
+#     bulk_prepare_and_index("data/db/law_texts", index_prefix="law_engine_full")
+import os
+import re
+import pickle
+import time
+import numpy as np
+from pathlib import Path
+from sentence_transformers import SentenceTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from scipy.sparse import save_npz
+from pinecone import Pinecone, ServerlessSpec
+
 
 # ==========================================
-# 1) SBERT Setup (Chạy Cục bộ - Loại bỏ toàn bộ API Key)
+# 1) SBERT Setup (Local)
 # ==========================================
-# Mô hình SBERT phổ biến cho đa ngôn ngữ (all-MiniLM-L6-v2)
 EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
-# Khởi tạo mô hình (Tải xuống nếu chưa có)
 try:
-    # Khởi tạo SBERT Model
     sbert_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
-    print(f"✅ Đã khởi tạo SBERT Model: {EMBEDDING_MODEL_NAME}")
+    print(f"✅ SBERT loaded: {EMBEDDING_MODEL_NAME}")
 except Exception as e:
-    print(f"❌ Lỗi khởi tạo SBERT: {e}. Đảm bảo đã cài đặt torch và sentence-transformers.")
+    print(f"❌ SBERT error: {e}")
     sbert_model = None
 
+
 # ==========================================
-# 2) Đọc file
+# 🌲 Pinecone Setup (SỬA QUAN TRỌNG)
+# ==========================================
+PINECONE_API_KEY = "pcsk_TW2iU_CxUKYWCf8rgEuTXdbXM1HK5i1mmcsPZ4vpYpxu496mi84B5BjKuYpbH8LB9faZ1"   # 🔴 API KEY THẬT
+PINECONE_INDEX_NAME = "law-engine-index"
+
+if not PINECONE_API_KEY:
+    raise ValueError("❌ PINECONE_API_KEY chưa được set")
+
+pc = Pinecone(api_key=PINECONE_API_KEY)
+
+existing_indexes = pc.list_indexes().names()
+
+if PINECONE_INDEX_NAME not in existing_indexes:
+    print("🆕 Creating Pinecone index...")
+    pc.create_index(
+        name=PINECONE_INDEX_NAME,
+        dimension=384,
+        metric="cosine",
+        spec=ServerlessSpec(
+            cloud="aws",
+            region="us-east-1"
+        )
+    )
+
+# 🔴 ĐỢI INDEX READY (RẤT QUAN TRỌNG)
+while not pc.describe_index(PINECONE_INDEX_NAME).status["ready"]:
+    print("⏳ Waiting for Pinecone index ready...")
+    time.sleep(2)
+
+pinecone_index = pc.Index(PINECONE_INDEX_NAME)
+print("✅ Pinecone index ready")
+
+
+# ==========================================
+# 2) Read document
 # ==========================================
 def read_document(path):
     with open(path, "r", encoding="utf-8") as f:
@@ -635,12 +868,11 @@ def read_document(path):
 
 
 # ==========================================
-# 3) Tách đoạn
+# 3) Chunking
 # ==========================================
 def split_into_chunks(text, max_len=500, overlap=100):
     sentences = re.split(r"(?<=[.!?])\s+", text)
-    chunks = []
-    current = ""
+    chunks, current = [], ""
 
     for s in sentences:
         if len(current) + len(s) <= max_len:
@@ -651,18 +883,12 @@ def split_into_chunks(text, max_len=500, overlap=100):
                 "metadata": {
                     "Decree": "N/A",
                     "Chapter": "N/A",
-                    "article_number": "N/A",
-                    "article": "N/A",
+                    "ArticleNo": "N/A",
+                    "Article": "N/A",
                     "Clause": "N/A"
                 }
             })
-
-            if overlap > 0:
-                tail = current[-overlap:]
-            else:
-                tail = ""
-
-            current = tail + " " + s
+            current = current[-overlap:] + " " + s
 
     if current.strip():
         chunks.append({
@@ -670,8 +896,8 @@ def split_into_chunks(text, max_len=500, overlap=100):
             "metadata": {
                 "Decree": "N/A",
                 "Chapter": "N/A",
-                "article_number": "N/A",
-                "article": "N/A",
+                "ArticleNo": "N/A",
+                "Article": "N/A",
                 "Clause": "N/A"
             }
         })
@@ -679,96 +905,86 @@ def split_into_chunks(text, max_len=500, overlap=100):
     return chunks
 
 
-
 # ==========================================
-# 4) Embedding (SBERT Cục bộ)
+# 4) Embedding (SBERT)
 # ==========================================
-def embed_batch_texts_gemini(texts):
-    """
-    Tạo embeddings cho một danh sách văn bản bằng SBERT (Chạy Cục bộ).
-    Giữ tên hàm 'embed_batch_texts_gemini' để tương thích với hàm gọi ở dưới.
-    """
+def embed_batch_texts(texts):
     if sbert_model is None:
-        raise ConnectionError("❌ Mô hình SBERT chưa được khởi tạo. Không thể tạo embeddings.")
+        raise RuntimeError("SBERT chưa load")
 
-    try:
-        # SBERT tự động xử lý batching và trả về NumPy array
-        embeddings = sbert_model.encode(
-            texts,
-            convert_to_tensor=False,
-            show_progress_bar=True
-        )
-
-        # Trả về list các np.array để tương thích với np.vstack sau này
-        return [np.array(v, dtype=np.float32) for v in embeddings]
-
-    except Exception as e:
-        print(f"❌ Lỗi khi tạo SBERT embeddings: {e}")
-        raise ConnectionError(f"❌ Dừng indexing do lỗi SBERT: {e}")
+    embeddings = sbert_model.encode(
+        texts,
+        convert_to_tensor=False,
+        show_progress_bar=True
+    )
+    return np.array(embeddings, dtype=np.float32)
 
 
 # ==========================================
-# 5) Tạo folder nếu chưa có
+# 5) Ensure dir
 # ==========================================
 def ensure_dir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
+    os.makedirs(path, exist_ok=True)
 
 
 # ==========================================
-# 6) Build & save index
+# 6) Build index (LOCAL + PINECONE)
 # ==========================================
 def prepare_index_for_folder(folder_path, index_prefix):
-    print("📌 Đang load thư mục:", folder_path)
-
-    all_chunk_objects = []  # <-- SỬA TÊN BIẾN: Lưu toàn bộ object (content + metadata)
-    all_content_texts = []  # <-- MỚI: Chỉ lưu nội dung để embedding và TF-IDF
-    file_map = []
-
-    # Giả định BASE_DIR là thư mục gốc của dự án
     BASE_DIR = Path(__file__).resolve().parent.parent
+    all_chunks, all_texts, file_map = [], [], []
 
     for file in (BASE_DIR / folder_path).glob("*.txt"):
         text = read_document(file)
-        chunks = split_into_chunks(text)  # Giả định hàm này trả về List[Dict]
+        chunks = split_into_chunks(text)
 
         for ck in chunks:
-            # 1. Lưu toàn bộ chunk object (có metadata)
-            all_chunk_objects.append(ck)
-            # 2. Chỉ lấy nội dung (content) để tạo vector
-            all_content_texts.append(ck['content'])
+            all_chunks.append(ck)
+            all_texts.append(ck["content"])
+            file_map.append(str(file))
 
-            file_map.append(str(file))  # Lưu file map
+    print(f"📌 Tổng chunks: {len(all_chunks)}")
 
-    print(f"📌 Tổng số đoạn văn bản: {len(all_chunk_objects)}")
-
-    # ---------------- TF-IDF ----------------
+    # ---------- TF-IDF ----------
     vectorizer = TfidfVectorizer()
-    tfidf_matrix = vectorizer.fit_transform(all_content_texts)  # Dùng all_content_texts
+    tfidf_matrix = vectorizer.fit_transform(all_texts)
 
     ensure_dir(BASE_DIR / "data/index")
-
     save_npz(BASE_DIR / f"data/index/{index_prefix}_tfidf.npz", tfidf_matrix)
 
     with open(BASE_DIR / f"data/index/{index_prefix}_vectorizer.pkl", "wb") as f:
         pickle.dump(vectorizer, f)
 
-    # ---------------- SBERT Embedding ----------------
-    print("🔮 Đang tạo SBERT embeddings…")
-
-    embeddings = embed_batch_texts_gemini(all_content_texts)  # Dùng all_content_texts
-    embeddings = np.vstack(embeddings)
-
+    # ---------- SBERT ----------
+    print("🔮 Đang tạo SBERT embeddings...")
+    embeddings = embed_batch_texts(all_texts)
     np.save(BASE_DIR / f"data/index/{index_prefix}_embeddings.npy", embeddings)
 
-    # LƯU CHUNKS CÓ METADATA
     with open(BASE_DIR / f"data/index/{index_prefix}_chunks.pkl", "wb") as f:
-        pickle.dump(all_chunk_objects, f)  # <-- ĐÃ SỬA: Lưu object có metadata
+        pickle.dump(all_chunks, f)
 
     with open(BASE_DIR / f"data/index/{index_prefix}_filemap.pkl", "wb") as f:
         pickle.dump(file_map, f)
 
-    print("🎉 DONE! Index đã tạo xong.")
+    # ---------- 🌲 Pinecone ----------
+    print("☁️ Upsert Pinecone...")
+    vectors = []
+
+    for i, (vec, chunk) in enumerate(zip(embeddings, all_chunks)):
+        vectors.append((
+            f"{index_prefix}_{i}",
+            vec.tolist(),
+            {
+                "text": chunk["content"][:800],  # 🔴 giới hạn metadata
+                **chunk["metadata"]
+            }
+        ))
+
+    for i in range(0, len(vectors), 100):
+        pinecone_index.upsert(vectors=vectors[i:i + 100])
+
+    print("📊 Pinecone stats:", pinecone_index.describe_index_stats())
+    print("🎉 DONE: Local + Pinecone OK")
 
 
 # ==========================================
@@ -780,3 +996,5 @@ def bulk_prepare_and_index(folder, index_prefix="law_engine"):
 
 if __name__ == "__main__":
     bulk_prepare_and_index("data/db/law_texts", index_prefix="law_engine_full")
+
+

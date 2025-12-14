@@ -285,25 +285,44 @@ import streamlit as st   # ⭐ THÊM DÒNG NÀY
 # ===============================
 # Cấu hình Gemini
 # ===============================
-GEMINI_API_KEY = "AIzaSyBLR6Du-vN2SLyF6ssA3YnukcYkYfTW1xc"
+# ===============================
+# IMPORT
+# ===============================
+import os
+import pickle
+import numpy as np
+import streamlit as st
+from pathlib import Path
+
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+from pinecone import Pinecone, ServerlessSpec
+
+import google.generativeai as genai
+import google.generativeai as genaig
+# ===============================
+# GEMINI SETUP
+# ===============================
+GEMINI_API_KEY = "AIzaSyC8r9qBW_7vNR2zPBuguVHc_tMgGyylCiw"
 GEMINI_MODEL = "gemini-2.5-flash"
+genaig.configure(api_key=GEMINI_API_KEY)
 
 try:
-    gemini_client = genai.Client(api_key=GEMINI_API_KEY)
-    print("✅ Đã khởi tạo Gemini Client.")
+    gemini_model = genaig.GenerativeModel(GEMINI_MODEL)
+    print("✅ Gemini model ready.")
 except Exception as e:
-    print(f"❌ Lỗi khởi tạo Gemini Client: {e}")
-    gemini_client = None
+    print(f"❌ Lỗi khởi tạo Gemini: {e}")
+    gemini_model = None
 
 
 # ===============================
-# Đường dẫn
+# PATH
 # ===============================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # ===============================
-# ⭐ Cache model SBERT để load 1 lần
+# SBERT (CACHE)
 # ===============================
 @st.cache_resource
 def load_sbert():
@@ -320,7 +339,7 @@ query_sbert_model = load_sbert()
 
 
 # ===============================
-# ⭐ Cache từng phần của vector database
+# LOAD LOCAL VECTOR DATA (CACHE)
 # ===============================
 @st.cache_resource
 def load_embeddings_cached(prefix):
@@ -347,61 +366,101 @@ def load_vectorizer_cached(prefix):
         return pickle.load(f)
 
 
-# ===============================
-# ⭐ HÀM LOAD DATABASE (nhưng tất cả đã cache)
-# ===============================
 def load_vector_database(index_prefix):
     try:
-        embeddings = load_embeddings_cached(index_prefix)
-        chunks = load_chunks_cached(index_prefix)
-        filemap = load_filemap_cached(index_prefix)
-        tfidf_matrix = load_tfidf_cached(index_prefix)
-        vectorizer = load_vectorizer_cached(index_prefix)
-
         return {
-            'embeddings': embeddings,
-            'chunks': chunks,
-            'filemap': filemap,
-            'tfidf_matrix': tfidf_matrix,
-            'vectorizer': vectorizer
+            "embeddings": load_embeddings_cached(index_prefix),
+            "chunks": load_chunks_cached(index_prefix),
+            "filemap": load_filemap_cached(index_prefix),
+            "tfidf_matrix": load_tfidf_cached(index_prefix),
+            "vectorizer": load_vectorizer_cached(index_prefix)
         }
-
     except Exception as e:
         print("❌ Lỗi load database:", e)
         return None
 
 
+# ===============================
+# PINECONE SETUP (CHỈ THÊM – KHÔNG PHÁ LOGIC)
+# ===============================
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_INDEX_NAME = "law-engine-index"
+PINECONE_DIM = 384  # all-MiniLM-L6-v2
+
+pc = Pinecone(api_key="pcsk_TW2iU_CxUKYWCf8rgEuTXdbXM1HK5i1mmcsPZ4vpYpxu496mi84B5BjKuYpbH8LB9faZ1")
+
+if PINECONE_INDEX_NAME not in [i["name"] for i in pc.list_indexes()]:
+    pc.create_index(
+        name=PINECONE_INDEX_NAME,
+        dimension=PINECONE_DIM,
+        metric="cosine",
+        spec=ServerlessSpec(
+            cloud="aws",
+            region="us-east-1"
+        )
+    )
+
+pinecone_index = pc.Index(PINECONE_INDEX_NAME)
+
 
 # ===============================
-#  Search
+# UPLOAD EMBEDDINGS → PINECONE (CHẠY 1 LẦN)
+# ===============================
+def upload_embeddings_to_pinecone(index_prefix):
+    embeddings = load_embeddings_cached(index_prefix)
+    chunks = load_chunks_cached(index_prefix)
+
+    vectors = []
+    for i, emb in enumerate(embeddings):
+        vectors.append({
+            "id": f"chunk_{i}",
+            "values": emb.tolist(),
+            "metadata": {"idx": i}
+        })
+
+    pinecone_index.upsert(vectors=vectors)
+    print("✅ Đã upload embeddings lên Pinecone")
+
+
+# ===============================
+# VECTOR SEARCH (GIỮ NGUYÊN LOGIC BOOST)
 # ===============================
 def vector_search_boosted(
-        query,
-        embeddings,
-        chunks,
-        vectorizer,
-        tfidf_matrix,
-        k=4,
-        boost_factor=5
+    query,
+    embeddings,
+    chunks,
+    vectorizer,
+    tfidf_matrix,
+    k=4,
+    boost_factor=5
 ):
-
     if query_sbert_model is None:
         raise ConnectionError("SBERT model chưa được load.")
 
-    # SBERT Semantic Search
+    # SBERT embedding
     query_embedding = query_sbert_model.encode([query], convert_to_tensor=False)[0]
-    semantic_scores = cosine_similarity([query_embedding], embeddings)[0]
 
-    # TF-IDF Lexical Search
+    # 🔥 SEMANTIC SEARCH → PINECONE
+    res = pinecone_index.query(
+        vector=query_embedding.tolist(),
+        top_k=len(chunks),
+        include_metadata=True
+    )
+
+    semantic_scores = np.zeros(len(chunks))
+    for m in res["matches"]:
+        idx = int(m["id"].split("_")[-1])
+        semantic_scores[idx] = m["score"]
+
+    # TF-IDF lexical
     query_tfidf = vectorizer.transform([query])
     lexical_scores = cosine_similarity(query_tfidf, tfidf_matrix)[0]
 
     # Normalize
-    norm_sem = (semantic_scores - semantic_scores.min()) / (semantic_scores.max() - semantic_scores.min())
-    norm_lex = (lexical_scores - lexical_scores.min()) / (lexical_scores.max() - lexical_scores.min())
+    norm_sem = (semantic_scores - semantic_scores.min()) / (semantic_scores.max() - semantic_scores.min() + 1e-9)
+    norm_lex = (lexical_scores - lexical_scores.min()) / (lexical_scores.max() - lexical_scores.min() + 1e-9)
 
     final_scores = norm_sem + norm_lex * boost_factor
-
     top_idx = np.argsort(final_scores)[::-1][:k]
 
     results = []
@@ -423,74 +482,64 @@ def vector_search_boosted(
     return results
 
 
-
 # ===============================
-#  Ask RAG
+# ASK RAG
 # ===============================
-def ask_rag(prompt, model_choice="phogpt-4b-chat"):
+def ask_rag(prompt):
 
     vector_db = load_vector_database("law_engine_full")
     if vector_db is None:
         return "Không thể tải database."
 
-    embeddings = vector_db['embeddings']
-    chunks = vector_db['chunks']
-    tfidf_matrix = vector_db['tfidf_matrix']
-    vectorizer = vector_db['vectorizer']
-
-    # Top-k search
-    top_k_chunks = vector_search_boosted(
+    top_chunks = vector_search_boosted(
         prompt,
-        embeddings=embeddings,
-        chunks=chunks,
-        vectorizer=vectorizer,
-        tfidf_matrix=tfidf_matrix,
+        embeddings=vector_db["embeddings"],
+        chunks=vector_db["chunks"],
+        vectorizer=vector_db["vectorizer"],
+        tfidf_matrix=vector_db["tfidf_matrix"],
         k=4,
         boost_factor=5
     )
 
-    if not top_k_chunks:
-        return "Không tìm thấy thông tin phù hợp."
+    context = ""
+    for r in top_chunks:
+        m = r.get("metadata", {})
 
-    # Build context
-    context_text = ""
-    for res in top_k_chunks:
-        meta = res["metadata"]
-        context_text += (
-            f"[Nguồn: Nghị định {meta['Decree']}, Chương {meta['Chapter']}, "
-            f"Điều {meta['article_number']} - {meta['article']}, Khoản {meta['Clause']}]\n"
-            f"{res['content']}\n\n"
+        context += (
+            # f"[Nguồn: Nghị định {m.get('Decree', 'N/A')}, "
+            # f"Chương {m.get('Chapter', 'N/A')}, "
+            # f"Điều {m.get('article_number', 'N/A')} - {m.get('article', 'N/A')}, "
+            # f"Khoản {m.get('Clause', 'N/A')}]\n"
+            f"{r.get('content', '')}\n\n"
         )
 
-    full_prompt = (
-        "Bạn là trợ lý AI luật Việt Nam.\n\n"
-        "---- NGỮ CẢNH ----\n"
-        f"{context_text}\n"
-        "---- CÂU HỎI ----\n"
-        f"{prompt}\n\n"
-        "=== Trả lời có dẫn nguồn chính xác ==="
-    )
+    full_prompt = f"""
+Bạn là trợ lý AI luật Việt Nam.
 
-    # Call Gemini
-    if gemini_client is None:
+---- NGỮ CẢNH ----
+{context}
+
+---- CÂU HỎI ----
+{prompt}
+
+
+"""
+
+
+
+    if gemini_model is None:
         return "Không thể gọi Gemini."
 
-    try:
-        response = gemini_client.models.generate_content(
-            model=GEMINI_MODEL,
-            contents=[full_prompt]
-        )
-        return response.text
-
-    except Exception as e:
-        print("❌ Gemini error:", e)
-        return "Lỗi khi gọi Gemini."
+    response = gemini_model.generate_content(full_prompt)
+    return response.text
 
 
 # ===============================
-# Test
+# MAIN (TEST + UPLOAD)
 # ===============================
 if __name__ == "__main__":
-    print("Thử nghiệm...")
+    upload_embeddings_to_pinecone("law_engine_full")
+
     q = "Thẩm quyền thu hồi đất?"
     print(ask_rag(q))
+
