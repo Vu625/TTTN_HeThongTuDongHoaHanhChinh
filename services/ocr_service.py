@@ -12,6 +12,7 @@ import os
 import re
 from typing import List, Dict
 import fitz
+import requests
 
 UPLOAD_DIR = Path("data/db/uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -573,4 +574,141 @@ def ocr_gplx(img_path):
         "is_valid_id_length": len(id_num) == 12
     }
 
+def extrackIDCard():
+    # Thay đổi URL nếu bạn chạy server Django trên máy khác
+    OCR_API_URL = "http://localhost:80/api/idcard_extract/"
 
+    st.title("Hệ thống Tích hợp OCR CCCD")
+
+    uploaded_file = st.file_uploader("Tải lên ảnh CCCD (JPEG/PNG)", type=['jpg', 'png'])
+
+    if uploaded_file is not None:
+        st.image(uploaded_file, caption='Ảnh đã tải lên', width=300)
+
+        if st.button('Xử lý OCR và Trích xuất Dữ liệu'):
+            st.info("Đang gửi ảnh tới dịch vụ OCR...")
+
+            # Chuẩn bị dữ liệu gửi đi
+            # Django thường mong đợi file được gửi dưới dạng POST multipart/form-data
+            files = {'selectedFile': uploaded_file.getvalue()}  # 'image' có thể là tên trường file mà Django Views mong đợi.
+
+            try:
+                # Thực hiện POST request tới API OCR
+                response = requests.post(OCR_API_URL, files=files, timeout=60)  # Thiết lập timeout
+
+                if response.status_code == 200:
+                    st.success("Nhận được phản hồi 200 OK từ server OCR. Đang kiểm tra nội dung...")
+
+                    # THÊM BƯỚC DEBUG:
+                    raw_text = response.text
+                    st.code(raw_text)  # Hiển thị nội dung thô nhận được từ Django
+
+                    try:
+                        # Cố gắng phân tích JSON
+                        result_data = response.json()
+                        st.success("✅ Phân tích JSON thành công!")
+                        st.json(result_data)
+
+                    except requests.exceptions.JSONDecodeError as e:
+                        st.error(f"❌ Lỗi Phân tích JSON: {e}")
+                        st.warning("Server Django đã trả về nội dung không phải JSON hợp lệ.")
+
+                    except Exception as e:
+                        st.error(f"Đã xảy ra lỗi không mong muốn: {e}")
+
+                else:
+                    # Nếu không phải 200, hiển thị lỗi server (như bạn đã làm)
+                    st.error(f"❌ Lỗi API OCR: {response.status_code} - {response.text}")
+
+            except requests.exceptions.ConnectionError:
+                st.error(
+                    f"⚠️ Lỗi kết nối: Không thể kết nối tới dịch vụ OCR tại {OCR_API_URL}. Vui lòng đảm bảo server Django đang chạy.")
+            except Exception as e:
+                st.error(f"Đã xảy ra lỗi không mong muốn: {e}")
+    pass
+
+# extrackIDCard()
+API_URL = "http://localhost/api/idcard"
+def upload_cccd(image_path):
+    with open(image_path, "rb") as f:
+        files = {"selectedFile": f}
+        response = requests.post(API_URL, files=files)
+
+    if response.status_code == 200:
+        data = response.json()
+        print("ID:", data.get("ID_number"))
+        print("Tên:", data.get("Name"))
+        print("Ngày sinh:", data.get("Date_of_birth"))
+        print("Giới tính:", data.get("Gender"))
+        print("Quốc tịch:", data.get("Nationality"))
+        print("Quê quán:", data.get("Place_of_origin"))
+        print("Nơi cư trú:", data.get("Place_of_residence"))
+        return data
+    else:
+        print("Lỗi API:", response.text)
+        return None
+
+
+# Gọi thử:
+# result = upload_cccd("data/db/uploads/Cancuoc_vu.jpg")
+
+import requests
+import base64
+
+# API_URL = "http://172.20.10.2/api/idcard"
+API_URL = "http://172.20.10.2/api/driverlicense"
+
+# ================================================
+# 1. Gửi ảnh dạng FILE (selectedFile)
+# ================================================
+def send_cccd_file(image_path):
+    with open(image_path, "rb") as f:
+        files = {"selectedFile": f}
+        response = requests.post(API_URL, files=files)
+
+    return process_response(response)
+
+
+# ================================================
+# 2. Gửi ảnh dạng BASE64 (ảnh chụp từ camera)
+# ================================================
+def send_cccd_base64(image_path):
+    with open(image_path, "rb") as f:
+        b64_data = base64.b64encode(f.read()).decode()
+
+    payload = {"imageBase64": b64_data}
+    response = requests.post(API_URL, data=payload)
+
+    return process_response(response)
+
+
+# ================================================
+# Xử lý dữ liệu trả về
+# ================================================
+def process_response(response):
+    if response.status_code != 200:
+        print("Lỗi API:", response.text)
+        return None
+
+    data = response.json()
+    print("===== KẾT QUẢ OCR =====")
+    print("Số GPLX:", data.get("License_number"))
+    print("Họ tên:", data.get("Name"))
+    print("Ngày sinh:", data.get("Date_of_birth"))
+    # print("Giới tính:", data.get("Gender"))
+    print("Quốc tịch:", data.get("Nationality"))
+    print("Hạng:", data.get("Class"))
+    print("Nơi cư trú:", data.get("Address"))
+    print("========================")
+    return data
+
+
+# ================================================
+# Ví dụ sử dụng
+# ================================================
+if __name__ == "__main__":
+    # 1. Gửi ảnh được chọn từ máy
+    send_cccd_file("data/db/uploads/GPLX_mattruoc.jpg")
+
+    # 2. Gửi ảnh chụp camera (base64)
+    # send_cccd_base64("data/db/uploads/GPLX_mattruoc.jpg")
