@@ -655,8 +655,8 @@ def upload_cccd(image_path):
 import requests
 import base64
 
-# API_URL = "http://172.20.10.2/api/idcard"
-API_URL = "http://172.20.10.2/api/driverlicense"
+API_URL_CC = "http://172.20.10.2/api/idcard"
+API_URL_GP = "http://172.20.10.2/api/driverlicense"
 
 # ================================================
 # 1. Gửi ảnh dạng FILE (selectedFile)
@@ -664,28 +664,16 @@ API_URL = "http://172.20.10.2/api/driverlicense"
 def send_cccd_file(image_path):
     with open(image_path, "rb") as f:
         files = {"selectedFile": f}
-        response = requests.post(API_URL, files=files)
+        response = requests.post(API_URL_CC, files=files)
 
-    return process_response(response)
-
-
-# ================================================
-# 2. Gửi ảnh dạng BASE64 (ảnh chụp từ camera)
-# ================================================
-def send_cccd_base64(image_path):
+    return process_response_cccd(response)
+def send_gplx_file(image_path):
     with open(image_path, "rb") as f:
-        b64_data = base64.b64encode(f.read()).decode()
+        files = {"selectedFile": f}
+        response = requests.post(API_URL_GP, files=files)
 
-    payload = {"imageBase64": b64_data}
-    response = requests.post(API_URL, data=payload)
-
-    return process_response(response)
-
-
-# ================================================
-# Xử lý dữ liệu trả về
-# ================================================
-def process_response(response):
+    return process_response_gplx(response)
+def process_response_gplx(response):
     if response.status_code != 200:
         print("Lỗi API:", response.text)
         return None
@@ -700,9 +688,35 @@ def process_response(response):
     print("Hạng:", data.get("Class"))
     print("Nơi cư trú:", data.get("Address"))
     print("========================")
-    return data
+    data_ocr = [
+        {'name':"So_GPLX",'label':"Số Giấy Phép Lái Xe",'text': data.get("License_number")},
+        {'name': "Ho_va_ten", 'label': "Họ Và Tên", 'text': data.get("Name")},
+        {'name': "Ngay_sinh", 'label': "Ngày Sinh", 'text': data.get("Date_of_birth")},
+        {'name': "Quoc_tich", 'label': "Quốc Tịch", 'text': data.get("Nationality")},
+        {'name': "Dia_chi", 'label': "Địa Chỉ", 'text': data.get("Address")},
+        {'name': "Hang", 'label': "Hạng", 'text': data.get("Class")},
+         ]
+    return {
+        "data": data_ocr
+    }
+def process_response_cccd(response):
+    if response.status_code != 200:
+        print("Lỗi API:", response.text)
+        return None
 
-
+    data = response.json()
+    data_ocr = [
+        {'name':"So_CCCD",'label':"Số Căn Cước Công Dân",'text': data['ID_number']},
+        {'name': "Ho_va_ten", 'label': "Họ Và Tên", 'text': data['Name']},
+        {'name': "Ngay_Sinh", 'label': "Ngày Sinh", 'text': data['Date_of_birth']},
+        {'name': "Gioi_tinh", 'label': "Giới Tính", 'text': data['Gender']},
+        {'name': "Quoc_tich", 'label': "Quốc Tịch", 'text': data['Nationality']},
+        {'name': "Que_quan", 'label': "Quê Quán", 'text': data['Place_of_origin']},
+        {'name': "Noi_thuong_tru", 'label': "Nơi Thường Trú", 'text': data['Place_of_residence']},
+         ]
+    return {
+        "data": data_ocr,
+    }
 # ================================================
 # Ví dụ sử dụng
 # ================================================

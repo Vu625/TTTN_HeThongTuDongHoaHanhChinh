@@ -4,7 +4,7 @@ def get_application_status():
     pass
 #logic gán cán bộ.
 import streamlit as st
-from services.ocr_service import extract_text, ocr_cccd , ocr_gplx , read_text_from_pdf
+from services.ocr_service import extract_text, read_text_from_pdf , send_cccd_file, send_gplx_file
 from pathlib import Path
 import datetime
 import base64
@@ -151,7 +151,6 @@ def receive_application(app):
     st.info("📥 Hồ sơ đã được tiếp nhận. Không có hành động tự động.")
     return app
 
-
 def extract_text_action_CCCD(app):
     st.subheader("🔍 OCR & Trích xuất văn bản từ tài liệu")
     st.divider()
@@ -194,7 +193,7 @@ def extract_text_action_CCCD(app):
 
             if st.button(ocr_button_label, key=f"ocr_btn_{file_key}"):
                 with st.spinner(f"Đang chạy OCR cho ảnh {path.name}..."):
-                    raw_data = ocr_cccd(path)
+                    raw_data = send_cccd_file(path)
                     st.session_state.ocr_data_raw = raw_data
                     st.session_state.current_file_key = file_key
                     st.session_state.action_type = "image_ocr"
@@ -241,9 +240,9 @@ def extract_text_action_CCCD(app):
                     )
                     text_fix[field["name"]] = st.session_state[input_key]
 
-                if st.button("💾 Lưu Nội Dung OCR Đã Sửa", key=f"save_ocr_btn_{file_key}"):
-                    app["ocr_texts"][file_key] = text_fix
-                    st.success(f"💾 Đã lưu nội dung CCCD đã sửa cho {file_key}.")
+                # if st.button("💾 Lưu Nội Dung OCR Đã Sửa", key=f"save_ocr_btn_{file_key}"):
+                app["ocr_texts"][file_key] = text_fix
+                st.success(f"💾 Đã lưu nội dung CCCD {file_key}.")
 
             # 2.2 Hiển thị và Lưu kết quả READ TEXT từ PDF (Dạng khối văn bản)
             elif st.session_state.action_type == "pdf_text" and st.session_state.ocr_data_raw and "text_by_page" in st.session_state.ocr_data_raw:
@@ -305,7 +304,6 @@ def approve_result(app):
 
     return app
 
-
 def extract_text_action_GPLX(app):
     st.subheader("🔍 OCR & Trích xuất văn bản từ tài liệu")
     st.divider()
@@ -350,7 +348,7 @@ def extract_text_action_GPLX(app):
 
             if st.button(ocr_button_label, key=f"ocr_btn_{file_key}"):
                 with st.spinner(f"Đang chạy OCR cho ảnh {path.name}..."):
-                    raw_data = ocr_gplx(path)
+                    raw_data = send_gplx_file(path)
                     st.session_state.gplx_ocr_data_raw = raw_data
                     st.session_state.gplx_current_file_key = file_key
                     st.session_state.gplx_action_type = "image_ocr"
@@ -398,9 +396,9 @@ def extract_text_action_GPLX(app):
                     )
                     text_fix[field["name"]] = st.session_state[input_key]
 
-                if st.button("💾 Lưu Nội Dung OCR Đã Sửa", key=f"save_ocr_btn_{file_key}"):
-                    app["ocr_texts"][file_key] = text_fix
-                    st.success(f"💾 Đã lưu nội dung GPLX đã sửa cho {file_key}.")
+                # if st.button("💾 Lưu Nội Dung OCR Đã Sửa", key=f"save_ocr_btn_{file_key}"):
+                app["ocr_texts"][file_key] = text_fix
+                st.success(f"💾 Đã lưu nội dung GPLX đã sửa cho {file_key}.")
 
             # 2.2 Hiển thị và Lưu kết quả READ TEXT từ PDF (Dạng khối văn bản)
             elif st.session_state.gplx_action_type == "pdf_text" and st.session_state.gplx_ocr_data_raw and "text_by_page" in st.session_state.gplx_ocr_data_raw:
